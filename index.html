@@ -35,6 +35,7 @@
   .chip{ background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:900; display:flex; gap:6px; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,.08) }
   .chip small{ color:#6b7280; font-weight:800 }
   .foot{ opacity:.85; font-size:12px; margin-top:8px; text-align:center }
+  .dbg{ font-size:12px; color:#6b7280; margin-top:6px }
 </style>
 </head>
 <body>
@@ -50,89 +51,98 @@
     </div>
 
     <div id="status" class="status">Ready ✅</div>
+    <div id="dbg" class="dbg"></div>
 
     <div class="np-wrap">
       <p class="np-title">Now Playing:</p>
       <ul id="np" class="np-list"></ul>
-      <div class="foot">Make sure each Google Drive file is shared as “Anyone with the link”.</div>
+      <div class="foot">Local first (A.mp3…Z.mp3), fallback to Google Drive if missing.</div>
     </div>
   </div>
 
 <script>
-  // Your Google Drive direct links (uc?export=download&id=...)
+  // --- Google Drive (fallback) ---
+  const gdl = id => `https://drive.googleusercontent.com/uc?id=${id}&export=download`;
   const DRIVE = {
-    A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
-    B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
-    C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
-    D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
-    E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
-    F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
-    G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
-    H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
-    I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
-    J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
-    K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
-    L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
-    M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
-    N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
-    O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
-    P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
-    Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
-    R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
-    S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
-    T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
-    U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
-    V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
-    W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
-    X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
-    Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
-    Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
+    A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae", B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
+    C:"15R8QN67z2I2fQajmObMkBWkobcpczK2M", D:"1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
+    E:"12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr", F:"1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
+    G:"1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv", H:"1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
+    I:"1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D", J:"194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
+    K:"12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA", L:"1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
+    M:"1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7", N:"1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
+    O:"11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX", P:"1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
+    Q:"1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb", R:"1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
+    S:"1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T", T:"1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
+    U:"13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i", V:"1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
+    W:"1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y", X:"1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
+    Y:"1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd", Z:"1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
   };
 
-  const grid   = document.getElementById('grid');
-  const stopBtn= document.getElementById('stopAll');
+  const grid = document.getElementById('grid');
+  const stopBtn = document.getElementById('stopAll');
   const playAZ = document.getElementById('playAZ');
   const status = document.getElementById('status');
-  const np     = document.getElementById('np');
+  const np = document.getElementById('np');
+  const dbg = document.getElementById('dbg');
 
-  // Track all live audios so Stop All works
   const active = new Set();
-  // Map audio -> chip element (for Now Playing)
-  const chips  = new Map();
+  const chips = new Map();
 
-  // Build letter buttons
+  // Build buttons
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
     const b = document.createElement('button');
     b.className = 'btn'; b.textContent = L;
-    b.addEventListener('click', () => playOverlap(L));
+    b.addEventListener('click', () => playLetter(L));
     grid.appendChild(b);
   });
 
-  // Create and start an overlapping sound for a letter
-  function playOverlap(letter){
-    const base = DRIVE[letter];
-    if (!base) { status.textContent = `No link for ${letter}`; return; }
-    // cache-bust so Drive/CDN doesn’t return a stale response
-    const src = base + (base.includes('?') ? '&' : '?') + 'v=' + Date.now();
+  function localUrl(letter){ return `${letter}.mp3?ts=${Date.now()}`; }
+  function driveUrl(letter){ return gdl(DRIVE[letter]) + `&v=${Date.now()}`; }
 
-    const a = new Audio(src);
-    a.preload = 'none';
-    a.crossOrigin = 'anonymous';
+  // Try local first; if play() fails quickly, fall back to Drive.
+  async function playLetter(letter){
+    let a = new Audio(localUrl(letter));
+    a.preload = 'auto';
+    attachChip(letter, a, a.src);
 
-    // Track for Stop All + Now Playing
-    active.add(a);
+    try {
+      await a.play();
+      status.textContent = `🔊 Playing ${letter} (local)`;
+      dbg.textContent = a.src;
+    } catch {
+      // fallback to Drive
+      cleanup(a);
+      a = new Audio(driveUrl(letter));
+      attachChip(letter, a, a.src);
+      try{
+        await a.play();
+        status.textContent = `🔊 Playing ${letter} (Drive)`;
+        dbg.textContent = a.src;
+      }catch{
+        cleanup(a);
+        status.textContent = `❗ Could not play ${letter}. Check that ${letter}.mp3 exists OR Drive sharing is public.`;
+        dbg.textContent = `Tried local and Drive`;
+      }
+    }
+  }
+
+  function attachChip(letter, audio, triedUrl){
+    active.add(audio);
     const li = document.createElement('li');
     li.className = 'chip';
     li.innerHTML = `<strong>${letter}</strong> <small>${new Date().toLocaleTimeString()}</small>`;
+    li.title = triedUrl || '';
     np.prepend(li);
-    chips.set(a, li);
+    chips.set(audio, li);
+    audio.onended = () => cleanup(audio);
+    audio.onpause = () => { if (audio.currentTime === 0) cleanup(audio); };
+  }
 
-    a.onended = () => { active.delete(a); const c=chips.get(a); if(c){c.remove(); chips.delete(a);} };
-    a.onpause = () => { if (a.currentTime === 0){ active.delete(a); const c=chips.get(a); if(c){c.remove(); chips.delete(a);} } };
-
-    a.play()
-      .then(()=>{ status.textContent = `🔊 Playing ${letter}`; })
-      .catch(()=>{ status.textContent = `❗ Could not play ${letter}. Check Drive sharing.`; const c=chips.get(a); if(c){c.remove(); chips.delete(a);} active.delete(a); });
+  function cleanup(audio){
+    active.delete(audio);
+    const c = chips.get(audio);
+    if (c) { c.remove(); chips.delete(audio); }
   }
 
   // Stop All
@@ -140,26 +150,27 @@
     for (const a of Array.from(active)) {
       try { a.pause(); a.currentTime = 0; } catch(e){}
       try { a.removeAttribute('src'); a.load(); } catch(e){}
-      const c = chips.get(a); if (c) { c.remove(); chips.delete(a); }
-      active.delete(a);
+      cleanup(a);
     }
     status.textContent = "⏹ All stopped";
+    dbg.textContent = "";
   });
 
-  // Play A → Z sequentially (demo)
+  // A→Z demo (sequential)
   playAZ.addEventListener('click', async () => {
     status.textContent = "🔁 Playing A → Z…";
     for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      const base = DRIVE[L]; if (!base) continue;
-      const src = base + (base.includes('?') ? '&' : '?') + 'v=' + Date.now();
-      const a = new Audio(src);
-      active.add(a);
-      const li = document.createElement('li');
-      li.className = 'chip'; li.innerHTML = `<strong>${L}</strong> <small>${new Date().toLocaleTimeString()}</small>`;
-      np.prepend(li); chips.set(a, li);
-      a.onended = () => { active.delete(a); const c=chips.get(a); if(c){c.remove(); chips.delete(a);} };
-      try { await a.play(); } catch {}
-      await new Promise(r => setTimeout(r, 140)); // tiny gap so each letter is audible
+      // local try
+      let a = new Audio(localUrl(L));
+      attachChip(L, a, a.src);
+      try { await a.play(); }
+      catch {
+        cleanup(a);
+        a = new Audio(driveUrl(L));
+        attachChip(L, a, a.src);
+        try { await a.play(); } catch { cleanup(a); }
+      }
+      await new Promise(r => setTimeout(r, 140));
     }
     status.textContent = "✅ Done A → Z";
   });

@@ -16,10 +16,20 @@
   h1{ margin:0 0 8px; text-shadow:0 6px 16px rgba(0,0,0,.25) }
   .sub{ margin:0 0 14px; opacity:.95 }
   .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; max-width:980px; margin:14px auto; box-shadow:var(--shadow) }
-  .grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); max-width:720px; margin:10px auto 16px }
+
+  /* Smaller, responsive grid so all letters fit on phones */
+  .grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+    max-width: 500px;
+    margin: 10px auto 16px;
+  }
+
   .btn{
-    border:none; border-radius:16px; color:#fff; font-weight:900; cursor:pointer;
-    aspect-ratio:1/1; font-size:22px; box-shadow:var(--shadow);
+    border:none; border-radius:12px; color:#fff; font-weight:900; cursor:pointer;
+    aspect-ratio:1/1; font-size:clamp(14px, 4vw, 18px);
+    box-shadow:var(--shadow);
     transition:transform .08s ease, filter .2s ease;
     background:linear-gradient(135deg,#ff6b6b,#ee5a24);
   }
@@ -28,14 +38,16 @@
   .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444) }
   .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981) }
   .btn:active{ transform:translateY(1px) scale(.98); filter:brightness(.95) }
+
   .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:8px 0 6px }
   .ctl{ background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:900; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.18) }
+  .ctl[disabled]{ opacity:.5; cursor:not-allowed }
   .status{ margin:10px auto; font-weight:900 }
 </style>
 </head>
 <body>
   <h1>Phonics Game 🎵</h1>
-  <p class="sub">Tap letters to play overlapping sounds</p>
+  <p class="sub">Tap letters to overlap • A→Z starts each next letter at half of the previous letter’s duration</p>
 
   <div class="panel">
     <div id="grid" class="grid"></div>
@@ -49,10 +61,8 @@
   </div>
 
 <script>
-  // Google Drive fallback builder
+  // Google Drive fallback (if local A.mp3…Z.mp3 is missing)
   const gdl = id => `https://drive.googleusercontent.com/uc?id=${id}&export=download`;
-
-  // Your Drive IDs
   const DRIVE = {
     A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae", B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
     C:"15R8QN67z2I2fQajmObMkBWkobcpczK2M", D:"1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
@@ -69,61 +79,130 @@
     Y:"1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd", Z:"1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
   };
 
-  const grid = document.getElementById('grid');
-  const stopBtn = document.getElementById('stopAll');
+  const grid   = document.getElementById('grid');
+  const stopBtn= document.getElementById('stopAll');
   const playAZ = document.getElementById('playAZ');
   const status = document.getElementById('status');
 
-  // Track active audio elements -> letter (Map keeps insertion order)
-  const active = new Map(); // Map<HTMLAudioElement, string>
+  // Track active (for Now Playing + Stop All)
+  const active = new Map(); // Map<HTMLAudioElement, letter>
+  let sequenceAbort = false; // lets Stop All abort the A→Z sequence
 
-  // Build buttons
+  // Build letter buttons
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
     const b = document.createElement('button');
     b.className = 'btn'; b.textContent = L;
-    b.addEventListener('click', () => playLetter(L));
+    b.addEventListener('click', () => playOverlap(L)); // taps can overlap
     grid.appendChild(b);
   });
 
   const localUrl = L => `${L}.mp3?ts=${Date.now()}`;
   const driveUrl = L => `${gdl(DRIVE[L])}&v=${Date.now()}`;
 
-  // Try local first, then Drive; allow overlaps
-  async function playLetter(L){
+  // Tap behavior: play immediately (overlap allowed)
+  async function playOverlap(L){
     let a = new Audio(localUrl(L));
-    a.preload = 'auto';
-    try {
-      await a.play();
-      attach(L, a);
-    } catch {
+    try { await a.play(); attach(L, a); }
+    catch {
       a = new Audio(driveUrl(L));
-      try {
-        await a.play();
-        attach(L, a);
-      } catch {
-        // failed both — do nothing
-      }
+      try { await a.play(); attach(L, a); } catch {}
     }
   }
 
-  function attach(L, audio){
+  // --- A→Z button: half-overlap sequencing ---
+  playAZ.addEventListener('click', async () => {
+    playAZ.disabled = true;
+    sequenceAbort = false;
+    // play A…Z; schedule next after half of current clip’s real duration
+    for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+      if (sequenceAbort) break;
+      await playNextAtHalf(L);
+      if (sequenceAbort) break;
+    }
+    playAZ.disabled = false;
+  });
+
+  // Returns when it's time to start the NEXT letter (after half duration)
+  function playNextAtHalf(L){
+    return new Promise(async (resolve) => {
+      // Try local first, then Drive
+      let a = new Audio(localUrl(L));
+      const cleanupAndResolve = () => { active.delete(a); updateStatus(); /* allow current to keep playing; nothing more to do here */ };
+      a.addEventListener('ended', cleanupAndResolve, {once:true});
+
+      // Helper to start and then resolve after half duration (or fallback)
+      const startWith = async (audio) => {
+        try {
+          await audio.play();
+          attach(L, audio, /*skipEndHook=*/true); // we attached a custom 'ended' above
+          updateStatus();
+
+          const halfMs = await halfDurationMs(audio);
+          // After half of this clip, resolve so the loop can start the next letter.
+          setTimeout(() => resolve(), halfMs);
+        } catch {
+          // If couldn't play at all, resolve immediately so the sequence continues
+          resolve();
+        }
+      };
+
+      try {
+        await startWith(a);
+      } catch {
+        a.removeEventListener('ended', cleanupAndResolve);
+        a = new Audio(driveUrl(L));
+        a.addEventListener('ended', cleanupAndResolve, {once:true});
+        await startWith(a);
+      }
+    });
+  }
+
+  // Compute half the true duration (ms); wait for metadata if needed; fallback if unknown
+  function halfDurationMs(audio){
+    return new Promise((res) => {
+      const fallback = 800; // default if duration can't be known
+      const finish = () => {
+        const d = audio.duration;
+        if (Number.isFinite(d) && d > 0) {
+          res(Math.max(200, (d * 1000) / 2)); // at least 200ms
+        } else {
+          res(fallback);
+        }
+      };
+
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        finish();
+      } else {
+        const onMeta = () => { cleanup(); finish(); };
+        const onTimeout = () => { cleanup(); res(fallback); };
+        const cleanup = () => {
+          audio.removeEventListener('loadedmetadata', onMeta);
+          audio.removeEventListener('durationchange', onMeta);
+        };
+        audio.addEventListener('loadedmetadata', onMeta, {once:true});
+        audio.addEventListener('durationchange', onMeta, {once:true});
+        // If metadata never arrives quickly, fallback
+        setTimeout(onTimeout, 1200);
+      }
+    });
+  }
+
+  // Attach an audio to tracking; optionally skip wiring default 'ended' hook
+  function attach(L, audio, skipEndHook=false){
     active.set(audio, L);
-    audio.onended = () => { active.delete(audio); updateStatus(); };
-    audio.onpause = () => { if (audio.currentTime === 0) { active.delete(audio); updateStatus(); } };
+    if (!skipEndHook) {
+      audio.addEventListener('ended', () => { active.delete(audio); updateStatus(); }, {once:true});
+    }
+    // also remove if stopped immediately
+    audio.addEventListener('pause', () => {
+      if (audio.currentTime === 0) { active.delete(audio); updateStatus(); }
+    });
     updateStatus();
   }
 
-  function updateStatus(){
-    if (active.size === 0) {
-      status.textContent = 'Now Playing: (none)';
-      return;
-    }
-    // Show letters in the order they started
-    const letters = Array.from(active.values());
-    status.textContent = 'Now Playing: ' + letters.join(', ');
-  }
-
+  // Stop All cancels everything and also aborts A→Z sequence
   stopBtn.addEventListener('click', () => {
+    sequenceAbort = true;
     for (const audio of Array.from(active.keys())) {
       try { audio.pause(); audio.currentTime = 0; } catch(e){}
       try { audio.removeAttribute('src'); audio.load(); } catch(e){}
@@ -132,12 +211,15 @@
     updateStatus();
   });
 
-  playAZ.addEventListener('click', async () => {
-    for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      playLetter(L);
-      await new Promise(r => setTimeout(r, 200)); // tiny stagger
+  function updateStatus(){
+    if (active.size === 0) {
+      status.textContent = 'Now Playing: (none)';
+    } else {
+      // show in the order they started (Map preserves insertion order)
+      const letters = Array.from(active.values());
+      status.textContent = 'Now Playing: ' + letters.join(', ');
     }
-  });
+  }
 </script>
 </body>
 </html>

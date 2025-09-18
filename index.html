@@ -1,259 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Alphabet Phonics — Overlap + Sequencer</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  :root{ --bg1:#667eea; --bg2:#764ba2; --ink:#1f2937; --card:#fff; --shadow:0 12px 28px rgba(0,0,0,.18); }
-  *{ box-sizing:border-box }
-  body{
-    margin:0; min-height:100vh; padding:18px;
-    font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-    background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%); color:#fff; text-align:center;
-  }
-  h1{
-    font-family:'Fredoka', cursive; font-weight:700;
-    font-size:clamp(1.8rem, 4.5vw, 3rem);
-    margin:2px 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25);
-  }
-  .subtitle{ opacity:.95; margin-bottom:12px }
-  .wrap{ max-width:1100px; margin:0 auto }
-  .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; box-shadow:var(--shadow); max-width:980px; margin:14px auto; }
-  .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px; }
-  .btn-ctl{
-    background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer;
-    box-shadow:0 6px 16px rgba(0,0,0,.18);
-  }
-  .btn-ctl.secondary{ background:#4b5563; }
-  .word-box{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; background:#f9fafb; border-radius:14px; padding:8px 10px; }
-  .word-box input{
-    border:none; outline:none; border-radius:10px; padding:10px 12px; min-width:180px; font-size:1rem; font-weight:700;
-    background:#fff; color:#111;
-  }
-  .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); max-width:900px; margin:10px auto 18px; }
-  .btn{
-    aspect-ratio:1/1; border:none; border-radius:18px; color:#fff; cursor:pointer; font-weight:800;
-    font-family:'Fredoka', cursive; font-size:clamp(1.4rem,4.5vw,2.2rem);
-    box-shadow:var(--shadow); transition:transform .08s ease, filter .2s ease; position:relative; overflow:hidden;
-  }
-  .btn:nth-child(5n+1){ background:linear-gradient(135deg,#ff6b6b,#ee5a24); }
-  .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d); }
-  .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa); }
-  .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444); }
-  .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981); }
-  .btn:active{ transform: translateY(1px) scale(.98); filter:brightness(.95); }
-  .btn.flash::after{ content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:0 0 0 4px rgba(255,255,255,.6) inset; animation:flash .22s ease; }
-  @keyframes flash{ from{opacity:1} to{opacity:0} }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phonics Game 🎵</title>
+  <style>
+    :root{
+      --bg1:#667eea; --bg2:#764ba2; --card:#ffffff; --ink:#1f2937;
+      --shadow:0 12px 28px rgba(0,0,0,.18);
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Nunito", sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: #fff; margin:0; min-height:100vh; padding:20px; text-align:center;
+    }
+    h1{ margin:0 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25) }
+    p.sub{ margin:0 0 16px; opacity:.95 }
+    .panel{
+      background:var(--card); color:var(--ink);
+      border-radius:22px; padding:20px; box-shadow:var(--shadow);
+      max-width:980px; margin:14px auto;
+    }
+    .grid{
+      display:grid; gap:12px; max-width:700px; margin:16px auto 8px;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    }
+    .btn{
+      border:none; border-radius:16px; color:#fff; font-weight:800; cursor:pointer;
+      padding:16px 0; font-size:20px; aspect-ratio:1/1; box-shadow:var(--shadow);
+      background: linear-gradient(135deg,#ff6b6b,#ee5a24);
+      transition: transform .08s ease, filter .2s ease;
+    }
+    .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d)}
+    .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa)}
+    .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444)}
+    .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981)}
+    .btn:active{ transform: translateY(1px) scale(.98); filter:brightness(.95) }
 
-  .now-playing{ text-align:left; margin:0 auto; max-width:760px; }
-  .np-title{ font-weight:800; margin:0 0 8px; }
-  .np-list{ display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0; }
-  .np-chip{
-    background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:800; min-width:36px; text-align:center;
-    box-shadow:0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:6px;
-  }
-  .np-chip small{ color:#6b7280; font-weight:700 }
-  .status{ margin-top:10px; font-weight:800 }
-  .warn{ color:#b91c1c } .ok{ color:#16a34a }
-</style>
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:12px auto 6px }
+    .ctl{
+      background:#111827; color:#fff; border:none; border-radius:12px;
+      padding:10px 14px; font-weight:800; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.18);
+    }
+    .wordbox{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;
+      background:#f3f4f6; padding:8px 10px; border-radius:14px;
+    }
+    input{
+      border:none; outline:none; background:#fff; color:#111;
+      border-radius:10px; padding:10px 12px; min-width:200px; font-weight:700;
+    }
+
+    .status{
+      margin:10px auto 4px; font-weight:800;
+      max-width:760px; text-align:center;
+    }
+
+    /* Now Playing list */
+    .np-wrap{ max-width:760px; margin:10px auto 0; text-align:left }
+    .np-title{ margin:0 0 8px; font-weight:900 }
+    .np-list{ list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:8px }
+    .chip{
+      background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px;
+      font-weight:800; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,.08)
+    }
+    .chip small{ color:#6b7280; font-weight:700 }
+    .foot{ opacity:.85; font-size:12px; margin-top:8px; text-align:center }
+    a{ color:#e0e7ff }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>🎵 Alphabet Phonics — Overlap + Sequencer</h1>
-    <div class="subtitle">Tap letters to overlap sounds • Play A→Z • Type a word and play all letters together</div>
+  <h1>Phonics Game 🎵</h1>
+  <p class="sub">Tap letters to overlap sounds • Type a word to play all letters together</p>
 
-    <div class="panel">
-      <div class="controls">
-        <button id="stopAll" class="btn-ctl">⏹️ Stop All</button>
-        <button id="playAZ" class="btn-ctl secondary">🔁 Play A → Z</button>
-        <div class="word-box">
-          <input id="wordInput" type="text" placeholder="Type a word (e.g., CAT)"/>
-          <button id="playWord" class="btn-ctl">✍️ Write the Word</button>
-        </div>
+  <div class="panel">
+    <div id="alphabet" class="grid"></div>
+
+    <div class="controls">
+      <button id="stopAll" class="ctl">⏹ Stop All</button>
+      <div class="wordbox">
+        <input id="wordInput" placeholder="Type a word (e.g., CAT)" />
+        <button id="playWord" class="ctl">✍️ Write the Word</button>
       </div>
+    </div>
 
-      <div id="grid" class="grid"></div>
+    <div id="status" class="status">Ready ✅</div>
 
-      <div class="now-playing">
-        <p class="np-title">Now Playing (latest first):</p>
-        <ul id="np" class="np-list"></ul>
-        <p id="status" class="status">Ready. Tap a letter to play.</p>
-      </div>
+    <div class="np-wrap">
+      <p class="np-title">Now Playing:</p>
+      <ul id="np" class="np-list"></ul>
+      <div class="foot">If anything doesn’t play, make sure each Google Drive file is shared as “Anyone with the link”.</div>
     </div>
   </div>
 
-<script>
-  // === Google Drive direct links ===
-  const DRIVE = {
-    A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
-    B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
-    C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
-    D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
-    E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
-    F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
-    G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
-    H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
-    I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
-    J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
-    K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
-    L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
-    M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
-    N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
-    O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
-    P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
-    Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
-    R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
-    S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
-    T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
-    U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
-    V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
-    W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
-    X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
-    Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
-    Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
-  };
-
-  const grid = document.getElementById('grid');
-  const np   = document.getElementById('np');
-  const status = document.getElementById('status');
-  const wordInput = document.getElementById('wordInput');
-  const stopAllBtn = document.getElementById('stopAll');
-  const playAZBtn = document.getElementById('playAZ');
-  const playWordBtn = document.getElementById('playWord');
-
-  const active = new Set();      // all live Audio() objects
-  const playing = [];            // [{letter, started, audio}]
-  let sequencing = false;
-
-  // Build button grid
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
-    const b = document.createElement('button');
-    b.className = 'btn';
-    b.textContent = L;
-    b.addEventListener('click', () => clickLetter(L, b));
-    grid.appendChild(b);
-  });
-
-  // ----- Audio helpers -----
-  function makeDriveURL(letter){ return DRIVE[letter] + (DRIVE[letter].includes('?')?'&':'?') + 'v=' + Date.now(); }
-
-  function spawnAudio(letter){
-    // try Drive (with cache-bust). If it fails, try local `A.mp3`.
-    const a = new Audio(makeDriveURL(letter));
-    a.preload = 'none';
-    return {
-      audio: a,
-      async ensurePlayable(){
-        try { await a.play(); a.pause(); }  // quick probe
-        catch {
-          // retry once
-          a.src = makeDriveURL(letter);
-          try { await a.play(); a.pause(); }
-          catch {
-            // local fallback
-            a.src = letter + '.mp3';
-          }
-        }
-        return a;
-      }
+  <script>
+    // Direct Google Drive links (uc?export=download&id=...)
+    const DRIVE = {
+      A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
+      B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
+      C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
+      D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
+      E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
+      F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
+      G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
+      H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
+      I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
+      J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
+      K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
+      L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
+      M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
+      N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
+      O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
+      P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
+      Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
+      R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
+      S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
+      T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
+      U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
+      V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
+      W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
+      X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
+      Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
+      Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
     };
-  }
 
-  function addNowPlaying(letter, audio){
-    const item = { letter, started: new Date(), audio };
-    playing.unshift(item);
-    if (playing.length > 20) playing.pop();
-    renderNowPlaying();
-    audio.onended = () => { removePlaying(item); active.delete(audio); };
-    return item;
-  }
+    const grid = document.getElementById("alphabet");
+    const status = document.getElementById("status");
+    const np = document.getElementById("np");
 
-  function removePlaying(item){
-    const i = playing.indexOf(item);
-    if (i >= 0) { playing.splice(i, 1); renderNowPlaying(); }
-    if (playing.length === 0) status.textContent = "Ready. Tap a letter to play.";
-  }
+    // Active audio objects for Stop All
+    const active = new Set();
+    // Now playing chips tracking
+    const chips = new Map(); // audio -> <li>
 
-  function renderNowPlaying(){
-    np.innerHTML = "";
-    for (const p of playing) {
-      const li = document.createElement('li');
-      li.className = 'np-chip';
-      li.innerHTML = `<strong>${p.letter}</strong> <small>${new Date(p.started).toLocaleTimeString()}</small>`;
-      np.appendChild(li);
-    }
-  }
-
-  // ----- Interactions -----
-  async function clickLetter(letter, btn){
-    btn.classList.add('flash'); setTimeout(()=>btn.classList.remove('flash'), 220);
-
-    const { audio } = await spawnAudio(letter).ensurePlayable();
-    active.add(audio);
-    addNowPlaying(letter, audio);
-
-    try { await audio.play(); status.innerHTML = `<span class="ok">Playing ${letter}</span>`; }
-    catch { status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing.</span>`; }
-  }
-
-  // Stop All — make sure we *truly* stop and unload on mobile/iOS
-  stopAllBtn.addEventListener('click', () => {
-    const list = Array.from(active);
-    for (const a of list) {
-      try { a.pause(); } catch(e){}
-      try { a.currentTime = 0; } catch(e){}
-      try { a.removeAttribute('src'); a.load(); } catch(e){} // unload
-    }
-    active.clear();
-    playing.length = 0;
-    renderNowPlaying();
-    sequencing = false;
-    status.textContent = "⏹️ Stopped all.";
-  });
-
-  // A → Z sequence (sequential)
-  playAZBtn.addEventListener('click', async () => {
-    if (sequencing) return;
-    sequencing = true;
-    status.textContent = "🔁 Sequencing A → Z…";
-    for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      if (!sequencing) break;
-      const { audio } = await spawnAudio(L).ensurePlayable();
-      active.add(audio);
-      addNowPlaying(L, audio);
-      try { await audio.play(); } catch {}
-      await new Promise(r => setTimeout(r, 140)); // small gap
-    }
-    if (sequencing) status.textContent = "✅ Done A → Z";
-    sequencing = false;
-  });
-
-  // Write the Word — play ALL letters at the same time (overlapping)
-  playWordBtn.addEventListener('click', async () => {
-    const raw = (wordInput.value || "").toUpperCase();
-    const letters = [...raw].filter(c => /[A-Z]/.test(c));
-    if (letters.length === 0) { status.innerHTML = `<span class="warn">Type A–Z letters.</span>`; return; }
-
-    status.textContent = `✍️ Playing word: ${raw}`;
-    // Spawn all audios first so they start nearly together
-    const audios = await Promise.all(letters.map(L => spawnAudio(L).ensurePlayable()));
-    audios.forEach((audio, i) => {
-      const L = letters[i];
-      active.add(audio);
-      addNowPlaying(L, audio);
-      // slight 30ms stagger to ease decoding on mobile
-      setTimeout(() => { try { audio.play(); } catch{} }, i * 30);
+    // Build grid buttons
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
+      const b = document.createElement("button");
+      b.className = "btn";
+      b.textContent = L;
+      b.onclick = () => playLetter(L);
+      grid.appendChild(b);
     });
-  });
 
-  // Optional keyboard shortcuts
-  window.addEventListener('keydown', (e) => {
-    const L = e.key.toUpperCase();
-    const i = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(L);
-    if (i >= 0) grid.children[i].click();
-  });
-</script>
+    // Make an audio (with cache buster) and register in active/chips
+    function createAudio(letter){
+      const base = DRIVE[letter];
+      if (!base) return null;
+      const url = base + (base.includes("?") ? "&" : "?") + "v=" + Date.now();
+      const a = new Audio(url);
+      a.preload = "auto";
+      a.crossOrigin = "anonymous";
+
+      // Track for Stop All
+      active.add(a);
+
+      // Create & attach chip in "Now Playing"
+      const li = document.createElement("li");
+      li.className = "chip";
+      const time = new Date().toLocaleTimeString();
+      li.innerHTML = `<strong>${letter}</strong> <small>${time}</small>`;
+      np.prepend(li);
+      chips.set(a, li);
+
+      // Cleanup when finished
+      a.onended = () => removeAudio(a);
+      a.onpause = () => { if (a.currentTime === 0) removeAudio(a); };
+
+      return a;
+    }
+
+    function removeAudio(a){
+      active.delete(a);
+      const li = chips.get(a);
+      if (li) { li.remove(); chips.delete(a); }
+    }
+
+    function playLetter(letter){
+      const a = createAudio(letter);
+      if (!a) {
+        status.textContent = `❌ No audio for ${letter}`;
+        return;
+      }
+      a.play().then(()=>{ status.textContent = `🔊 Playing ${letter}`; })
+              .catch(()=>{ status.textContent = `❗ Could not play ${letter}`; removeAudio(a); });
+    }
+
+    // Stop All
+    document.getElementById("stopAll").onclick = () => {
+      for (const a of Array.from(active)) {
+        try { a.pause(); a.currentTime = 0; } catch(e){}
+        try { a.removeAttribute('src'); a.load(); } catch(e){}
+        removeAudio(a);
+      }
+      status.textContent = "⏹ All stopped";
+    };
+
+    // Write the Word (play ALL letters at the same time)
+    document.getElementById("playWord").onclick = () => {
+      const raw = (document.getElementById("wordInput").value || "").toUpperCase();
+      const letters = [...raw].filter(c => /[A-Z]/.test(c));
+      if (letters.length === 0){
+        status.textContent = "❌ Type A–Z letters";
+        return;
+      }
+      status.textContent = `✍️ Playing: ${raw}`;
+      // Build all audios first, then start almost together (10ms stagger)
+      const audios = letters.map(L => createAudio(L)).filter(Boolean);
+      audios.forEach((a,i) => setTimeout(() => { try{ a.play(); } catch(e){} }, i*10));
+    };
+  </script>
 </body>
 </html>

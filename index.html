@@ -49,8 +49,10 @@
   </div>
 
 <script>
-  // --- Google Drive fallback ---
+  // Google Drive fallback builder
   const gdl = id => `https://drive.googleusercontent.com/uc?id=${id}&export=download`;
+
+  // Your Drive IDs
   const DRIVE = {
     A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae", B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
     C:"15R8QN67z2I2fQajmObMkBWkobcpczK2M", D:"1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
@@ -72,7 +74,8 @@
   const playAZ = document.getElementById('playAZ');
   const status = document.getElementById('status');
 
-  const active = new Set();
+  // Track active audio elements -> letter (Map keeps insertion order)
+  const active = new Map(); // Map<HTMLAudioElement, string>
 
   // Build buttons
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
@@ -82,50 +85,57 @@
     grid.appendChild(b);
   });
 
-  function localUrl(letter){ return `${letter}.mp3?ts=${Date.now()}`; }
-  function driveUrl(letter){ return gdl(DRIVE[letter]) + `&v=${Date.now()}`; }
+  const localUrl = L => `${L}.mp3?ts=${Date.now()}`;
+  const driveUrl = L => `${gdl(DRIVE[L])}&v=${Date.now()}`;
 
-  async function playLetter(letter){
-    let a = new Audio(localUrl(letter));
+  // Try local first, then Drive; allow overlaps
+  async function playLetter(L){
+    let a = new Audio(localUrl(L));
+    a.preload = 'auto';
     try {
       await a.play();
-      addActive(letter, a);
+      attach(L, a);
     } catch {
-      a = new Audio(driveUrl(letter));
+      a = new Audio(driveUrl(L));
       try {
         await a.play();
-        addActive(letter, a);
-      } catch {}
+        attach(L, a);
+      } catch {
+        // failed both — do nothing
+      }
     }
   }
 
-  function addActive(letter, audio){
-    active.add({letter,audio});
-    audio.onended = () => { active.delete({letter,audio}); updateStatus(); };
+  function attach(L, audio){
+    active.set(audio, L);
+    audio.onended = () => { active.delete(audio); updateStatus(); };
+    audio.onpause = () => { if (audio.currentTime === 0) { active.delete(audio); updateStatus(); } };
     updateStatus();
   }
 
   function updateStatus(){
     if (active.size === 0) {
-      status.textContent = "Now Playing: (none)";
-    } else {
-      const letters = [...active].map(x=>x.letter);
-      status.textContent = "Now Playing: " + letters.join(", ");
+      status.textContent = 'Now Playing: (none)';
+      return;
     }
+    // Show letters in the order they started
+    const letters = Array.from(active.values());
+    status.textContent = 'Now Playing: ' + letters.join(', ');
   }
 
   stopBtn.addEventListener('click', () => {
-    for (const {audio} of active) {
-      try { audio.pause(); audio.currentTime=0; } catch(e){}
+    for (const audio of Array.from(active.keys())) {
+      try { audio.pause(); audio.currentTime = 0; } catch(e){}
+      try { audio.removeAttribute('src'); audio.load(); } catch(e){}
+      active.delete(audio);
     }
-    active.clear();
     updateStatus();
   });
 
   playAZ.addEventListener('click', async () => {
     for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
       playLetter(L);
-      await new Promise(r=>setTimeout(r,200));
+      await new Promise(r => setTimeout(r, 200)); // tiny stagger
     }
   });
 </script>

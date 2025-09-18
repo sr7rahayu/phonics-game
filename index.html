@@ -1,68 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Alphabet Phonics — Overlap + Sequencer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{ --bg1:#667eea; --bg2:#764ba2; --ink:#1f2937; --card:#fff; --shadow:0 12px 28px rgba(0,0,0,.18); }
-    *{ box-sizing:border-box }
-    body{
-      margin:0; min-height:100vh; padding:18px;
-      font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%); color:#fff; text-align:center;
-    }
-    h1{
-      font-family:'Fredoka', cursive; font-weight:700;
-      font-size:clamp(1.8rem, 4.5vw, 3rem);
-      margin:2px 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25);
-    }
-    .subtitle{ opacity:.95; margin-bottom:12px }
-    .wrap{ max-width:1100px; margin:0 auto }
-    .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; box-shadow:var(--shadow); max-width:980px; margin:14px auto; }
-    .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px; }
-    .btn-ctl{
-      background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer;
-      box-shadow:0 6px 16px rgba(0,0,0,.18);
-    }
-    .btn-ctl.secondary{ background:#4b5563; }
-    .word-box{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; background:#f9fafb; border-radius:14px; padding:8px 10px; }
-    .word-box input{
-      border:none; outline:none; border-radius:10px; padding:10px 12px; min-width:180px; font-size:1rem; font-weight:700;
-      background:#fff; color:#111;
-    }
-    .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); max-width:900px; margin:10px auto 18px; }
-    .btn{
-      aspect-ratio:1/1; border:none; border-radius:18px; color:#fff; cursor:pointer; font-weight:800;
-      font-family:'Fredoka', cursive; font-size:clamp(1.4rem,4.5vw,2.2rem);
-      box-shadow:var(--shadow); transition:transform .08s ease, filter .2s ease; position:relative; overflow:hidden;
-    }
-    .btn:nth-child(5n+1){ background:linear-gradient(135deg,#ff6b6b,#ee5a24); }
-    .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d); }
-    .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa); }
-    .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444); }
-    .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981); }
-    .btn:active{ transform: translateY(1px) scale(.98); filter:brightness(.95); }
-    .btn.flash::after{ content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:0 0 0 4px rgba(255,255,255,.6) inset; animation:flash .22s ease; }
-    @keyframes flash{ from{opacity:1} to{opacity:0} }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Alphabet Phonics — Overlap + Sequencer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg1:#667eea; --bg2:#764ba2; --ink:#1f2937; --card:#fff; --shadow:0 12px 28px rgba(0,0,0,.18); }
+  *{ box-sizing:border-box }
+  body{
+    margin:0; min-height:100vh; padding:18px;
+    font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%); color:#fff; text-align:center;
+  }
+  h1{
+    font-family:'Fredoka', cursive; font-weight:700;
+    font-size:clamp(1.8rem, 4.5vw, 3rem);
+    margin:2px 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25);
+  }
+  .subtitle{ opacity:.95; margin-bottom:12px }
+  .wrap{ max-width:1100px; margin:0 auto }
+  .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; box-shadow:var(--shadow); max-width:980px; margin:14px auto; }
+  .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px; }
+  .btn-ctl{
+    background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer;
+    box-shadow:0 6px 16px rgba(0,0,0,.18);
+  }
+  .btn-ctl.secondary{ background:#4b5563; }
+  .word-box{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; background:#f9fafb; border-radius:14px; padding:8px 10px; }
+  .word-box input{
+    border:none; outline:none; border-radius:10px; padding:10px 12px; min-width:180px; font-size:1rem; font-weight:700;
+    background:#fff; color:#111;
+  }
+  .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); max-width:900px; margin:10px auto 18px; }
+  .btn{
+    aspect-ratio:1/1; border:none; border-radius:18px; color:#fff; cursor:pointer; font-weight:800;
+    font-family:'Fredoka', cursive; font-size:clamp(1.4rem,4.5vw,2.2rem);
+    box-shadow:var(--shadow); transition:transform .08s ease, filter .2s ease; position:relative; overflow:hidden;
+  }
+  .btn:nth-child(5n+1){ background:linear-gradient(135deg,#ff6b6b,#ee5a24); }
+  .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d); }
+  .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa); }
+  .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444); }
+  .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981); }
+  .btn:active{ transform: translateY(1px) scale(.98); filter:brightness(.95); }
+  .btn.flash::after{ content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:0 0 0 4px rgba(255,255,255,.6) inset; animation:flash .22s ease; }
+  @keyframes flash{ from{opacity:1} to{opacity:0} }
 
-    .now-playing{ text-align:left; margin:0 auto; max-width:760px; }
-    .np-title{ font-weight:800; margin:0 0 8px; }
-    .np-list{ display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0; }
-    .np-chip{
-      background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:800; min-width:36px; text-align:center;
-      box-shadow:0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:6px;
-    }
-    .np-chip small{ color:#6b7280; font-weight:700 }
-    .status{ margin-top:10px; font-weight:800 }
-    .warn{ color:#b91c1c } .ok{ color:#16a34a }
-  </style>
+  .now-playing{ text-align:left; margin:0 auto; max-width:760px; }
+  .np-title{ font-weight:800; margin:0 0 8px; }
+  .np-list{ display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0; }
+  .np-chip{
+    background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:800; min-width:36px; text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:6px;
+  }
+  .np-chip small{ color:#6b7280; font-weight:700 }
+  .status{ margin-top:10px; font-weight:800 }
+  .warn{ color:#b91c1c } .ok{ color:#16a34a }
+</style>
 </head>
 <body>
   <div class="wrap">
     <h1>🎵 Alphabet Phonics — Overlap + Sequencer</h1>
-    <div class="subtitle">Tap letters to overlap sounds • Play A→Z • Type a word and play it in order</div>
+    <div class="subtitle">Tap letters to overlap sounds • Play A→Z • Type a word and play all letters together</div>
 
     <div class="panel">
       <div class="controls">
@@ -84,207 +84,176 @@
     </div>
   </div>
 
-  <script>
-    // === Google Drive direct links ===
-    const DRIVE = {
-      A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
-      B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
-      C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
-      D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
-      E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
-      F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
-      G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
-      H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
-      I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
-      J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
-      K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
-      L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
-      M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
-      N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
-      O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
-      P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
-      Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
-      R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
-      S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
-      T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
-      U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
-      V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
-      W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
-      X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
-      Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
-      Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
-    };
+<script>
+  // === Google Drive direct links ===
+  const DRIVE = {
+    A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
+    B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
+    C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
+    D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
+    E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
+    F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
+    G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
+    H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
+    I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
+    J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
+    K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
+    L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
+    M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
+    N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
+    O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
+    P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
+    Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
+    R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
+    S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
+    T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
+    U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
+    V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
+    W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
+    X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
+    Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
+    Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
+  };
 
-    const grid = document.getElementById('grid');
-    const np   = document.getElementById('np');
-    const status = document.getElementById('status');
-    const wordInput = document.getElementById('wordInput');
-    const stopAllBtn = document.getElementById('stopAll');
-    const playAZBtn = document.getElementById('playAZ');
-    const playWordBtn = document.getElementById('playWord');
+  const grid = document.getElementById('grid');
+  const np   = document.getElementById('np');
+  const status = document.getElementById('status');
+  const wordInput = document.getElementById('wordInput');
+  const stopAllBtn = document.getElementById('stopAll');
+  const playAZBtn = document.getElementById('playAZ');
+  const playWordBtn = document.getElementById('playWord');
 
-    const active = new Set();   // Set<HTMLAudioElement> we can stop
-    const playing = [];         // [{letter, started, audio}]
-    let sequencing = false;
+  const active = new Set();      // all live Audio() objects
+  const playing = [];            // [{letter, started, audio}]
+  let sequencing = false;
 
-    // Build buttons
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
-      const b = document.createElement('button');
-      b.className = 'btn';
-      b.textContent = L;
-      b.addEventListener('click', () => playOverlap(L, b));
-      grid.appendChild(b);
-    });
+  // Build button grid
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.textContent = L;
+    b.addEventListener('click', () => clickLetter(L, b));
+    grid.appendChild(b);
+  });
 
-    // Create a playable Audio with retries and local fallback
-    function makeAudio(letter){
-      const srcBase = DRIVE[letter];
-      // First try Drive with a cache-busting param
-      const src1 = srcBase + (srcBase.includes('?') ? '&' : '?') + 'v=' + Date.now();
-      const a = new Audio(src1);
-      a.preload = 'none';
-      a.crossOrigin = 'anonymous';
-      return { audio: a, retry: () => {
-        // Retry once more with a fresh cache-buster, then fall back to local file
-        const src2 = srcBase + (srcBase.includes('?') ? '&' : '?') + 'v=' + (Date.now()+1);
-        a.src = src2;
-        return new Promise((resolve, reject) => {
-          a.play().then(resolve).catch(() => {
-            // final fallback: try local A.mp3 if present in the repo
-            const local = new Audio(letter + '.mp3');
-            local.preload = 'none';
-            local.play().then(() => {
-              // swap references so Stop All works
-              a.pause(); a.src = '';
-              resolve(local);
-            }).catch(reject);
-          });
-        });
-      }};
-    }
+  // ----- Audio helpers -----
+  function makeDriveURL(letter){ return DRIVE[letter] + (DRIVE[letter].includes('?')?'&':'?') + 'v=' + Date.now(); }
 
-    function playOverlap(letter, btn){
-      const { audio: a, retry } = makeAudio(letter);
-      active.add(a);
-
-      btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), 220);
-
-      const item = { letter, started: new Date(), audio: a };
-      playing.unshift(item); if (playing.length > 16) playing.pop();
-      renderNowPlaying();
-
-      a.play()
-        .then(() => { status.innerHTML = `<span class="ok">Playing ${letter}</span>`; })
-        .catch(async () => {
-          try {
-            const swapped = await retry(); // either same 'a' or a local fallback
-            if (swapped !== a) { active.delete(a); active.add(swapped); item.audio = swapped; }
-            status.innerHTML = `<span class="ok">Playing ${letter}</span>`;
-          } catch {
-            status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing (“Anyone with the link”).</span>`;
-            removePlaying(item);
-            active.delete(a);
-          }
-        });
-
-      a.onended = () => { removePlaying(item); active.delete(a); };
-    }
-
-    function removePlaying(item){
-      const i = playing.indexOf(item);
-      if (i >= 0) { playing.splice(i, 1); renderNowPlaying(); }
-      if (playing.length === 0) status.textContent = "Ready. Tap a letter to play.";
-    }
-
-    function renderNowPlaying(){
-      np.innerHTML = "";
-      for (const p of playing) {
-        const li = document.createElement('li');
-        li.className = 'np-chip';
-        li.innerHTML = `<strong>${p.letter}</strong> <small>${new Date(p.started).toLocaleTimeString()}</small>`;
-        np.appendChild(li);
-      }
-    }
-
-    // Stop All
-    stopAllBtn.addEventListener('click', () => {
-      for (const a of active) { try { a.pause(); a.currentTime = 0; } catch(e){} }
-      active.clear();
-      playing.splice(0, playing.length);
-      renderNowPlaying();
-      status.textContent = "⏹️ Stopped all.";
-      sequencing = false;
-    });
-
-    // Sequencer helpers
-    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
-    async function playOnce(letter){
-      return new Promise(async (resolve) => {
-        const { audio: a, retry } = makeAudio(letter);
-        active.add(a);
-        const item = { letter, started: new Date(), audio: a };
-        playing.unshift(item); if (playing.length > 16) playing.pop();
-        renderNowPlaying();
-
-        const finish = () => { removePlaying(item); active.delete(a); resolve(); };
-        const endTimer = setTimeout(finish, 3000); // safety timeout
-        a.onended = () => { clearTimeout(endTimer); finish(); };
-
-        try { await a.play(); }
+  function spawnAudio(letter){
+    // try Drive (with cache-bust). If it fails, try local `A.mp3`.
+    const a = new Audio(makeDriveURL(letter));
+    a.preload = 'none';
+    return {
+      audio: a,
+      async ensurePlayable(){
+        try { await a.play(); a.pause(); }  // quick probe
         catch {
-          try {
-            const swapped = await retry();
-            if (swapped !== a) { clearTimeout(endTimer); swapped.onended = finish; }
-          } catch { clearTimeout(endTimer); finish(); }
+          // retry once
+          a.src = makeDriveURL(letter);
+          try { await a.play(); a.pause(); }
+          catch {
+            // local fallback
+            a.src = letter + '.mp3';
+          }
         }
-      });
-    }
-
-    // Play A → Z sequentially
-    playAZBtn.addEventListener('click', async () => {
-      if (sequencing) return;
-      sequencing = true;
-      status.textContent = "🔁 Sequencing A → Z…";
-      for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-        if (!sequencing) break;
-        await playOnce(L);
-        await delay(120);
+        return a;
       }
-      if (sequencing) status.textContent = "✅ Done A → Z";
-      sequencing = false;
-    });
-
-    // Play typed word sequentially
-    const playWordBtnHandler = async () => {
-      const raw = (wordInput.value || "").toUpperCase();
-      if (!raw.trim()) { status.innerHTML = `<span class="warn">Type a word first.</span>`; return; }
-      if (sequencing) return;
-      sequencing = true;
-
-      const parts = [];
-      for (const ch of raw) {
-        if (/[A-Z]/.test(ch)) parts.push({ type:"letter", value: ch });
-        else if (/\s/.test(ch)) parts.push({ type:"space" });
-      }
-
-      status.textContent = `✍️ Playing word: ${raw}`;
-      for (const p of parts) {
-        if (!sequencing) break;
-        if (p.type === "space") { await delay(160); continue; }
-        await playOnce(p.value);
-        await delay(120);
-      }
-      if (sequencing) status.textContent = "✅ Done";
-      sequencing = false;
     };
-    playWordBtn.addEventListener('click', playWordBtnHandler);
+  }
 
-    // Optional keyboard: A–Z triggers overlap play
-    window.addEventListener('keydown', (e) => {
-      const L = e.key.toUpperCase();
-      const i = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(L);
-      if (i >= 0) grid.children[i].click();
+  function addNowPlaying(letter, audio){
+    const item = { letter, started: new Date(), audio };
+    playing.unshift(item);
+    if (playing.length > 20) playing.pop();
+    renderNowPlaying();
+    audio.onended = () => { removePlaying(item); active.delete(audio); };
+    return item;
+  }
+
+  function removePlaying(item){
+    const i = playing.indexOf(item);
+    if (i >= 0) { playing.splice(i, 1); renderNowPlaying(); }
+    if (playing.length === 0) status.textContent = "Ready. Tap a letter to play.";
+  }
+
+  function renderNowPlaying(){
+    np.innerHTML = "";
+    for (const p of playing) {
+      const li = document.createElement('li');
+      li.className = 'np-chip';
+      li.innerHTML = `<strong>${p.letter}</strong> <small>${new Date(p.started).toLocaleTimeString()}</small>`;
+      np.appendChild(li);
+    }
+  }
+
+  // ----- Interactions -----
+  async function clickLetter(letter, btn){
+    btn.classList.add('flash'); setTimeout(()=>btn.classList.remove('flash'), 220);
+
+    const { audio } = await spawnAudio(letter).ensurePlayable();
+    active.add(audio);
+    addNowPlaying(letter, audio);
+
+    try { await audio.play(); status.innerHTML = `<span class="ok">Playing ${letter}</span>`; }
+    catch { status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing.</span>`; }
+  }
+
+  // Stop All — make sure we *truly* stop and unload on mobile/iOS
+  stopAllBtn.addEventListener('click', () => {
+    const list = Array.from(active);
+    for (const a of list) {
+      try { a.pause(); } catch(e){}
+      try { a.currentTime = 0; } catch(e){}
+      try { a.removeAttribute('src'); a.load(); } catch(e){} // unload
+    }
+    active.clear();
+    playing.length = 0;
+    renderNowPlaying();
+    sequencing = false;
+    status.textContent = "⏹️ Stopped all.";
+  });
+
+  // A → Z sequence (sequential)
+  playAZBtn.addEventListener('click', async () => {
+    if (sequencing) return;
+    sequencing = true;
+    status.textContent = "🔁 Sequencing A → Z…";
+    for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+      if (!sequencing) break;
+      const { audio } = await spawnAudio(L).ensurePlayable();
+      active.add(audio);
+      addNowPlaying(L, audio);
+      try { await audio.play(); } catch {}
+      await new Promise(r => setTimeout(r, 140)); // small gap
+    }
+    if (sequencing) status.textContent = "✅ Done A → Z";
+    sequencing = false;
+  });
+
+  // Write the Word — play ALL letters at the same time (overlapping)
+  playWordBtn.addEventListener('click', async () => {
+    const raw = (wordInput.value || "").toUpperCase();
+    const letters = [...raw].filter(c => /[A-Z]/.test(c));
+    if (letters.length === 0) { status.innerHTML = `<span class="warn">Type A–Z letters.</span>`; return; }
+
+    status.textContent = `✍️ Playing word: ${raw}`;
+    // Spawn all audios first so they start nearly together
+    const audios = await Promise.all(letters.map(L => spawnAudio(L).ensurePlayable()));
+    audios.forEach((audio, i) => {
+      const L = letters[i];
+      active.add(audio);
+      addNowPlaying(L, audio);
+      // slight 30ms stagger to ease decoding on mobile
+      setTimeout(() => { try { audio.play(); } catch{} }, i * 30);
     });
-  </script>
+  });
+
+  // Optional keyboard shortcuts
+  window.addEventListener('keydown', (e) => {
+    const L = e.key.toUpperCase();
+    const i = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(L);
+    if (i >= 0) grid.children[i].click();
+  });
+</script>
 </body>
 </html>

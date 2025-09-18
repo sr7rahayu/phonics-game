@@ -1,28 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Alphabet Phonics Game</title>
+  <title>Alphabet Phonics — Overlap + Sequencer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;margin:0;padding:20px;text-align:center;color:#fff}
-    h1{margin:0 0 6px} p{margin:0 0 12px;opacity:.9}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:12px;max-width:640px;margin:18px auto}
-    .btn{background:#ff6b6b;color:#fff;border:none;border-radius:14px;padding:18px 0;font-size:1.6rem;font-weight:700;cursor:pointer;transition:transform .1s}
-    .btn:active{transform:scale(.98)}
-    .display{background:#fff;color:#111;max-width:520px;margin:18px auto 0;padding:14px 16px;border-radius:16px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
-    .ok{color:#16a34a;font-weight:700}.warn{color:#b91c1c;font-weight:700}
+    :root{ --bg1:#667eea; --bg2:#764ba2; --ink:#1f2937; --card:#fff; --shadow:0 12px 28px rgba(0,0,0,.18); }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; min-height:100vh; padding:18px;
+      font-family:'Nunito',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%); color:#fff; text-align:center;
+    }
+    h1{
+      font-family:'Fredoka', cursive; font-weight:700;
+      font-size:clamp(1.8rem, 4.5vw, 3rem);
+      margin:2px 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25);
+    }
+    .subtitle{ opacity:.95; margin-bottom:12px }
+    .wrap{ max-width:1100px; margin:0 auto }
+    .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; box-shadow:var(--shadow); max-width:980px; margin:14px auto; }
+    .controls{
+      display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px;
+    }
+    .btn-ctl{
+      background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer;
+      box-shadow:0 6px 16px rgba(0,0,0,.18);
+    }
+    .btn-ctl.secondary{ background:#4b5563; }
+    .word-box{
+      display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center;
+      background:#f9fafb; border-radius:14px; padding:8px 10px;
+    }
+    .word-box input{
+      border:none; outline:none; border-radius:10px; padding:10px 12px; min-width:180px; font-size:1rem; font-weight:700;
+      background:#fff; color:#111;
+    }
+    .grid{
+      display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      max-width:900px; margin:10px auto 18px;
+    }
+    .btn{
+      aspect-ratio:1/1; border:none; border-radius:18px; color:#fff; cursor:pointer; font-weight:800;
+      font-family:'Fredoka', cursive; font-size:clamp(1.4rem,4.5vw,2.2rem);
+      box-shadow:var(--shadow); transition:transform .08s ease, filter .2s ease; position:relative; overflow:hidden;
+    }
+    .btn:nth-child(5n+1){ background:linear-gradient(135deg,#ff6b6b,#ee5a24); }
+    .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d); }
+    .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa); }
+    .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444); }
+    .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981); }
+    .btn:active{ transform: translateY(1px) scale(.98); filter:brightness(.95); }
+    .btn.flash::after{ content:""; position:absolute; inset:0; border-radius:inherit; box-shadow:0 0 0 4px rgba(255,255,255,.6) inset; animation:flash .22s ease; }
+    @keyframes flash{ from{opacity:1} to{opacity:0} }
+
+    .now-playing{ text-align:left; margin:0 auto; max-width:760px; }
+    .np-title{ font-weight:800; margin:0 0 8px; }
+    .np-list{ display:flex; flex-wrap:wrap; gap:8px; list-style:none; padding:0; margin:0; }
+    .np-chip{
+      background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:800; min-width:36px; text-align:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.08); display:flex; align-items:center; gap:6px;
+    }
+    .np-chip small{ color:#6b7280; font-weight:700 }
+    .status{ margin-top:10px; font-weight:800 }
+    .warn{ color:#b91c1c } .ok{ color:#16a34a }
   </style>
 </head>
 <body>
-  <h1>🎵 Alphabet Phonics Game 🎵</h1>
-  <p>Tap a letter to play its sound.</p>
+  <div class="wrap">
+    <h1>🎵 Alphabet Phonics — Overlap + Sequencer</h1>
+    <div class="subtitle">Tap letters to overlap sounds • Play A→Z • Type a word and play it in order</div>
 
-  <div id="grid" class="grid"></div>
-  <div id="out" class="display">🌟 Click a letter to start! 🌟</div>
+    <div class="panel">
+      <div class="controls">
+        <button id="stopAll" class="btn-ctl">⏹️ Stop All</button>
+        <button id="playAZ" class="btn-ctl secondary">🔁 Play A → Z</button>
+        <div class="word-box">
+          <input id="wordInput" type="text" placeholder="Type a word (e.g., CAT)"/>
+          <button id="playWord" class="btn-ctl">✍️ Write the Word</button>
+        </div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+
+      <div class="now-playing">
+        <p class="np-title">Now Playing (latest first):</p>
+        <ul id="np" class="np-list"></ul>
+        <p id="status" class="status">Ready. Tap a letter to play.</p>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Direct Google Drive URLs (built from your links)
+    // === Google Drive direct links (from your list) ===
     const DRIVE = {
       A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
       B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
@@ -49,41 +120,151 @@
       W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
       X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
       Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
-      Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ",
+      Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
     };
 
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    const grid = document.getElementById("grid");
-    const out  = document.getElementById("out");
-    const audioMap = new Map();
-    let current = null;
+    const grid = document.getElementById('grid');
+    const np   = document.getElementById('np');
+    const status = document.getElementById('status');
+    const wordInput = document.getElementById('wordInput');
+    const stopAllBtn = document.getElementById('stopAll');
+    const playAZBtn = document.getElementById('playAZ');
+    const playWordBtn = document.getElementById('playWord');
 
-    // Build buttons and attach audio
-    for (const L of letters) {
-      const b = document.createElement("button");
-      b.className = "btn";
+    // Overlapping: keep references so we can Stop All
+    const active = new Set(); // Set<HTMLAudioElement>
+    const playing = [];       // [{letter, started, audio} newest first]
+    let sequencing = false;
+
+    // Build letter buttons
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
+      const b = document.createElement('button');
+      b.className = 'btn';
       b.textContent = L;
-
-      const a = new Audio();
-      a.src = DRIVE[L];
-      a.preload = "none"; // load only on click (helps in iframes/Canva)
-
-      b.addEventListener("click", async () => {
-        // stop previous
-        if (current && current !== a) { try { current.pause(); current.currentTime = 0; } catch(e){} }
-        current = a;
-        try { a.currentTime = 0; } catch(e){}
-        try {
-          await a.play();            // requires user gesture; click is ok
-          out.innerHTML = `<span class="ok">🔊 Playing ${L}</span>`;
-        } catch (e) {
-          out.innerHTML = `<span class="warn">❗ Could not play ${L}. Check Drive sharing: “Anyone with the link”.</span>`;
-        }
-      });
-
-      audioMap.set(L, a);
+      b.addEventListener('click', () => playOverlap(L, b));
       grid.appendChild(b);
+    });
+
+    // Play single letter with overlap (new audio per click)
+    function playOverlap(letter, btn){
+      const src = DRIVE[letter];
+      const a = new Audio(src);
+      a.preload = 'none';
+      active.add(a);
+
+      // visual tap flash
+      btn.classList.add('flash');
+      setTimeout(() => btn.classList.remove('flash'), 220);
+
+      const item = { letter, started: new Date(), audio: a };
+      playing.unshift(item);
+      if (playing.length > 16) playing.pop();
+      renderNowPlaying();
+
+      a.play()
+        .then(() => { status.innerHTML = `<span class="ok">Playing ${letter}</span>`; })
+        .catch(() => {
+          status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing: “Anyone with the link”.</span>`;
+          removePlaying(item);
+          active.delete(a);
+        });
+
+      a.onended = () => { removePlaying(item); active.delete(a); };
     }
+
+    function removePlaying(item){
+      const idx = playing.indexOf(item);
+      if (idx >= 0) { playing.splice(idx, 1); renderNowPlaying(); }
+      if (playing.length === 0) status.textContent = "Ready. Tap a letter to play.";
+    }
+
+    function renderNowPlaying(){
+      np.innerHTML = "";
+      for (const p of playing) {
+        const li = document.createElement('li');
+        li.className = 'np-chip';
+        li.innerHTML = `<strong>${p.letter}</strong> <small>${new Date(p.started).toLocaleTimeString()}</small>`;
+        np.appendChild(li);
+      }
+    }
+
+    // Stop All
+    stopAllBtn.addEventListener('click', () => {
+      for (const a of active) {
+        try { a.pause(); a.currentTime = 0; } catch(e){}
+      }
+      active.clear();
+      playing.splice(0, playing.length);
+      renderNowPlaying();
+      status.textContent = "⏹️ Stopped all.";
+      sequencing = false; // cancel any sequencer
+    });
+
+    // Sequencer helpers (await end or timeout)
+    function playOnce(letter){
+      return new Promise((resolve) => {
+        const a = new Audio(DRIVE[letter]);
+        a.preload = 'none';
+        active.add(a);
+
+        const item = { letter, started: new Date(), audio: a };
+        playing.unshift(item); if (playing.length > 16) playing.pop();
+        renderNowPlaying();
+
+        const done = () => { removePlaying(item); active.delete(a); resolve(); };
+        const to = setTimeout(done, 2500); // fallback finish in 2.5s if no 'ended'
+
+        a.onended = () => { clearTimeout(to); done(); };
+        a.play().catch(() => { clearTimeout(to); done(); });
+      });
+    }
+
+    // Play A → Z sequentially
+    playAZBtn.addEventListener('click', async () => {
+      if (sequencing) return; // avoid double start
+      sequencing = true;
+      status.textContent = "🔁 Sequencing A → Z…";
+      for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+        if (!sequencing) break;
+        await playOnce(L);
+        await delay(120); // tiny gap between letters
+      }
+      if (sequencing) status.textContent = "✅ Done A → Z";
+      sequencing = false;
+    });
+
+    // Play typed word sequentially (letters only; spaces = short pause)
+    playWordBtn.addEventListener('click', async () => {
+      const raw = (wordInput.value || "").toUpperCase();
+      if (!raw.trim()) { status.innerHTML = `<span class="warn">Type a word first.</span>`; return; }
+      if (sequencing) return;
+      sequencing = true;
+
+      const letters = [];
+      for (const ch of raw) {
+        if (/[A-Z]/.test(ch)) letters.push({ type: "letter", value: ch });
+        else if (/\s/.test(ch)) letters.push({ type: "space" });
+      }
+
+      status.textContent = `✍️ Playing word: ${raw}`;
+      for (const part of letters) {
+        if (!sequencing) break;
+        if (part.type === "space") { await delay(160); continue; }
+        await playOnce(part.value);
+        await delay(120);
+      }
+      if (sequencing) status.textContent = "✅ Done";
+      sequencing = false;
+    });
+
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    // Optional keyboard: A–Z triggers overlap play
+    window.addEventListener('keydown', (e) => {
+      const L = e.key.toUpperCase();
+      const i = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(L);
+      if (i >= 0) grid.children[i].click();
+    });
   </script>
 </body>
 </html>

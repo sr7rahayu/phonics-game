@@ -5,81 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alphabet Phonics Game</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      color: #fff;
-    }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; margin: 0; padding: 20px; text-align: center; color: #fff; }
     h1 { margin-bottom: 10px; }
-    .alphabet-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-      gap: 10px;
-      max-width: 600px;
-      margin: 20px auto;
-    }
-    .letter-btn {
-      background: #ff6b6b;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 1.5rem;
-      padding: 20px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .letter-btn:hover { transform: scale(1.1); }
-    #soundDisplay {
-      margin-top: 30px;
-      padding: 20px;
-      background: white;
-      border-radius: 15px;
-      color: black;
-      font-size: 1.2rem;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  </style>
-</head>
-<body>
-  <h1>🎵 Alphabet Phonics Game 🎵</h1>
-  <p>Click any letter to hear its sound!</p>
-
-  <div class="alphabet-grid" id="alphabetGrid"></div>
-
-  <div id="soundDisplay">🌟 Click a letter to start! 🌟</div>
-
-  <script>
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-    const grid = document.getElementById("alphabetGrid");
-    const display = document.getElementById("soundDisplay");
-    let currentAudio = null;
-
-    letters.forEach(letter => {
-      const btn = document.createElement("button");
-      btn.textContent = letter;
-      btn.className = "letter-btn";
-      btn.onclick = () => playSound(letter);
-      grid.appendChild(btn);
-    });
-
-    function playSound(letter) {
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-      }
-      const audio = new Audio(`${letter}.mp3`);
-      currentAudio = audio;
-      audio.play().catch(err => {
-        display.textContent = `❌ Could not play ${letter}.mp3`;
-      });
-      display.textContent = `🔊 Playing sound for: ${letter}`;
-    }
-  </script>
-</body>
-</html>
+    .alphabet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px; max-width: 600px; margin: 20px auto; }
+    .letter-btn { background: #ff6b6b; border: none; border-radius: 10px; color: white; font-size: 1.5rem; padding: 20px; cursor: pointer; transition: transform 0.2s; }
+    .letter-btn:hover {

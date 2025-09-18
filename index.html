@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Phonics Game 🎵</title>
   <style>
     :root{
@@ -67,7 +67,7 @@
     }
     .chip small{ color:#6b7280; font-weight:700 }
     .foot{ opacity:.85; font-size:12px; margin-top:8px; text-align:center }
-    a{ color:#e0e7ff }
+    .debug{ font-size:12px; color:#6b7280; margin-top:6px }
   </style>
 </head>
 <body>
@@ -86,16 +86,17 @@
     </div>
 
     <div id="status" class="status">Ready ✅</div>
+    <div id="debug" class="debug"></div>
 
     <div class="np-wrap">
       <p class="np-title">Now Playing:</p>
       <ul id="np" class="np-list"></ul>
-      <div class="foot">If anything doesn’t play, make sure each Google Drive file is shared as “Anyone with the link”.</div>
+      <div class="foot">If anything doesn’t play, ensure each Google Drive file is shared as “Anyone with the link”.</div>
     </div>
   </div>
 
   <script>
-    // Direct Google Drive links (uc?export=download&id=...)
+    // 1) Google Drive links (fallback):
     const DRIVE = {
       A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
       B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
@@ -125,89 +126,116 @@
       Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
     };
 
-    const grid = document.getElementById("alphabet");
-    const status = document.getElementById("status");
-    const np = document.getElementById("np");
+    const grid  = document.getElementById('alphabet');
+    const statusEl = document.getElementById('status');
+    const debugEl  = document.getElementById('debug');
+    const npList   = document.getElementById('np');
+    const active   = new Set(); // Set<HTMLAudioElement>
+    const chips    = new Map(); // Map<HTMLAudioElement, HTMLLIElement>
 
-    // Active audio objects for Stop All
-    const active = new Set();
-    // Now playing chips tracking
-    const chips = new Map(); // audio -> <li>
-
-    // Build grid buttons
+    // Build A–Z buttons
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
-      const b = document.createElement("button");
-      b.className = "btn";
+      const b = document.createElement('button');
+      b.className = 'btn';
       b.textContent = L;
       b.onclick = () => playLetter(L);
       grid.appendChild(b);
     });
 
-    // Make an audio (with cache buster) and register in active/chips
-    function createAudio(letter){
-      const base = DRIVE[letter];
-      if (!base) return null;
-      const url = base + (base.includes("?") ? "&" : "?") + "v=" + Date.now();
-      const a = new Audio(url);
-      a.preload = "auto";
-      a.crossOrigin = "anonymous";
-
-      // Track for Stop All
-      active.add(a);
-
-      // Create & attach chip in "Now Playing"
-      const li = document.createElement("li");
-      li.className = "chip";
-      const time = new Date().toLocaleTimeString();
-      li.innerHTML = `<strong>${letter}</strong> <small>${time}</small>`;
-      np.prepend(li);
-      chips.set(a, li);
-
-      // Cleanup when finished
-      a.onended = () => removeAudio(a);
-      a.onpause = () => { if (a.currentTime === 0) removeAudio(a); };
-
-      return a;
+    // Candidate sources: local first, then Drive with cache-buster
+    function candidateURLs(letter){
+      const drive = DRIVE[letter] ? DRIVE[letter] + (DRIVE[letter].includes('?')?'&':'?') + 'v=' + Date.now() : null;
+      return [
+        `${letter}.mp3`,                // repo root (recommended)
+        `./${letter}.mp3`,              // explicit relative
+        drive                           // fallback to Drive
+      ].filter(Boolean);
     }
 
-    function removeAudio(a){
-      active.delete(a);
-      const li = chips.get(a);
-      if (li) { li.remove(); chips.delete(a); }
-    }
-
-    function playLetter(letter){
-      const a = createAudio(letter);
-      if (!a) {
-        status.textContent = `❌ No audio for ${letter}`;
-        return;
+    // Try to start an <audio> from the list of candidate URLs
+    async function startAudio(letter){
+      const urls = candidateURLs(letter);
+      for (let i=0; i<urls.length; i++){
+        const url = urls[i];
+        const a = new Audio(url);
+        a.preload = 'auto';
+        a.crossOrigin = 'anonymous';
+        attachNowPlaying(letter, a, url);
+        try {
+          await a.play();
+          log(`▶️ ${letter}: playing ${url}`);
+          return a; // success
+        } catch (err){
+          // remove chip for this failed try
+          detachNowPlaying(a);
+          log(`⚠️ ${letter}: failed ${url}`);
+          // try next candidate
+        }
       }
-      a.play().then(()=>{ status.textContent = `🔊 Playing ${letter}`; })
-              .catch(()=>{ status.textContent = `❗ Could not play ${letter}`; removeAudio(a); });
+      throw new Error(`No playable source for ${letter}`);
+    }
+
+    function log(msg){
+      debugEl.textContent = msg;
+    }
+
+    function attachNowPlaying(letter, audio, urlShown){
+      active.add(audio);
+      const li = document.createElement('li');
+      li.className = 'chip';
+      li.innerHTML = `<strong>${letter}</strong> <small>${new Date().toLocaleTimeString()}</small>`;
+      li.title = urlShown;
+      npList.prepend(li);
+      chips.set(audio, li);
+      audio.onended = () => detachNowPlaying(audio);
+      audio.onpause = () => { if (audio.currentTime === 0) detachNowPlaying(audio); };
+    }
+
+    function detachNowPlaying(audio){
+      active.delete(audio);
+      const li = chips.get(audio);
+      if (li){ li.remove(); chips.delete(audio); }
+    }
+
+    async function playLetter(letter){
+      statusEl.textContent = `Loading ${letter}…`;
+      try {
+        const a = await startAudio(letter);
+        statusEl.textContent = `🔊 Playing ${letter}`;
+      } catch {
+        statusEl.textContent = `❗ Could not play ${letter}`;
+      }
     }
 
     // Stop All
-    document.getElementById("stopAll").onclick = () => {
+    document.getElementById('stopAll').onclick = () => {
       for (const a of Array.from(active)) {
         try { a.pause(); a.currentTime = 0; } catch(e){}
         try { a.removeAttribute('src'); a.load(); } catch(e){}
-        removeAudio(a);
+        detachNowPlaying(a);
       }
-      status.textContent = "⏹ All stopped";
+      statusEl.textContent = "⏹ All stopped";
+      log('');
     };
 
-    // Write the Word (play ALL letters at the same time)
-    document.getElementById("playWord").onclick = () => {
-      const raw = (document.getElementById("wordInput").value || "").toUpperCase();
+    // Write the Word: play ALL letters together
+    document.getElementById('playWord').onclick = async () => {
+      const raw = (document.getElementById('wordInput').value || '').toUpperCase();
       const letters = [...raw].filter(c => /[A-Z]/.test(c));
       if (letters.length === 0){
-        status.textContent = "❌ Type A–Z letters";
+        statusEl.textContent = "❌ Type A–Z letters";
         return;
       }
-      status.textContent = `✍️ Playing: ${raw}`;
-      // Build all audios first, then start almost together (10ms stagger)
-      const audios = letters.map(L => createAudio(L)).filter(Boolean);
-      audios.forEach((a,i) => setTimeout(() => { try{ a.play(); } catch(e){} }, i*10));
+      statusEl.textContent = `✍️ Playing: ${raw}`;
+
+      // Start all letters concurrently (overlap). Each letter tries local then Drive.
+      await Promise.allSettled(
+        letters.map(async (L, i) => {
+          // slight 10ms stagger to help mobile decoders
+          await new Promise(r => setTimeout(r, i*10));
+          try { await startAudio(L); } catch {}
+        })
+      );
     };
   </script>
 </body>

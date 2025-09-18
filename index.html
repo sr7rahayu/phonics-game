@@ -21,26 +21,18 @@
     .subtitle{ opacity:.95; margin-bottom:12px }
     .wrap{ max-width:1100px; margin:0 auto }
     .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; box-shadow:var(--shadow); max-width:980px; margin:14px auto; }
-    .controls{
-      display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px;
-    }
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center; margin:6px 0 14px; }
     .btn-ctl{
       background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:800; cursor:pointer;
       box-shadow:0 6px 16px rgba(0,0,0,.18);
     }
     .btn-ctl.secondary{ background:#4b5563; }
-    .word-box{
-      display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center;
-      background:#f9fafb; border-radius:14px; padding:8px 10px;
-    }
+    .word-box{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center; background:#f9fafb; border-radius:14px; padding:8px 10px; }
     .word-box input{
       border:none; outline:none; border-radius:10px; padding:10px 12px; min-width:180px; font-size:1rem; font-weight:700;
       background:#fff; color:#111;
     }
-    .grid{
-      display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-      max-width:900px; margin:10px auto 18px;
-    }
+    .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); max-width:900px; margin:10px auto 18px; }
     .btn{
       aspect-ratio:1/1; border:none; border-radius:18px; color:#fff; cursor:pointer; font-weight:800;
       font-family:'Fredoka', cursive; font-size:clamp(1.4rem,4.5vw,2.2rem);
@@ -93,7 +85,7 @@
   </div>
 
   <script>
-    // === Google Drive direct links (from your list) ===
+    // === Google Drive direct links ===
     const DRIVE = {
       A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
       B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
@@ -131,12 +123,11 @@
     const playAZBtn = document.getElementById('playAZ');
     const playWordBtn = document.getElementById('playWord');
 
-    // Overlapping: keep references so we can Stop All
-    const active = new Set(); // Set<HTMLAudioElement>
-    const playing = [];       // [{letter, started, audio} newest first]
+    const active = new Set();   // Set<HTMLAudioElement> we can stop
+    const playing = [];         // [{letter, started, audio}]
     let sequencing = false;
 
-    // Build letter buttons
+    // Build buttons
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
       const b = document.createElement('button');
       b.className = 'btn';
@@ -145,36 +136,63 @@
       grid.appendChild(b);
     });
 
-    // Play single letter with overlap (new audio per click)
-    function playOverlap(letter, btn){
-      const src = DRIVE[letter];
-      const a = new Audio(src);
+    // Create a playable Audio with retries and local fallback
+    function makeAudio(letter){
+      const srcBase = DRIVE[letter];
+      // First try Drive with a cache-busting param
+      const src1 = srcBase + (srcBase.includes('?') ? '&' : '?') + 'v=' + Date.now();
+      const a = new Audio(src1);
       a.preload = 'none';
+      a.crossOrigin = 'anonymous';
+      return { audio: a, retry: () => {
+        // Retry once more with a fresh cache-buster, then fall back to local file
+        const src2 = srcBase + (srcBase.includes('?') ? '&' : '?') + 'v=' + (Date.now()+1);
+        a.src = src2;
+        return new Promise((resolve, reject) => {
+          a.play().then(resolve).catch(() => {
+            // final fallback: try local A.mp3 if present in the repo
+            const local = new Audio(letter + '.mp3');
+            local.preload = 'none';
+            local.play().then(() => {
+              // swap references so Stop All works
+              a.pause(); a.src = '';
+              resolve(local);
+            }).catch(reject);
+          });
+        });
+      }};
+    }
+
+    function playOverlap(letter, btn){
+      const { audio: a, retry } = makeAudio(letter);
       active.add(a);
 
-      // visual tap flash
-      btn.classList.add('flash');
-      setTimeout(() => btn.classList.remove('flash'), 220);
+      btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), 220);
 
       const item = { letter, started: new Date(), audio: a };
-      playing.unshift(item);
-      if (playing.length > 16) playing.pop();
+      playing.unshift(item); if (playing.length > 16) playing.pop();
       renderNowPlaying();
 
       a.play()
         .then(() => { status.innerHTML = `<span class="ok">Playing ${letter}</span>`; })
-        .catch(() => {
-          status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing: “Anyone with the link”.</span>`;
-          removePlaying(item);
-          active.delete(a);
+        .catch(async () => {
+          try {
+            const swapped = await retry(); // either same 'a' or a local fallback
+            if (swapped !== a) { active.delete(a); active.add(swapped); item.audio = swapped; }
+            status.innerHTML = `<span class="ok">Playing ${letter}</span>`;
+          } catch {
+            status.innerHTML = `<span class="warn">Could not play ${letter}. Check Drive sharing (“Anyone with the link”).</span>`;
+            removePlaying(item);
+            active.delete(a);
+          }
         });
 
       a.onended = () => { removePlaying(item); active.delete(a); };
     }
 
     function removePlaying(item){
-      const idx = playing.indexOf(item);
-      if (idx >= 0) { playing.splice(idx, 1); renderNowPlaying(); }
+      const i = playing.indexOf(item);
+      if (i >= 0) { playing.splice(i, 1); renderNowPlaying(); }
       if (playing.length === 0) status.textContent = "Ready. Tap a letter to play.";
     }
 
@@ -190,74 +208,76 @@
 
     // Stop All
     stopAllBtn.addEventListener('click', () => {
-      for (const a of active) {
-        try { a.pause(); a.currentTime = 0; } catch(e){}
-      }
+      for (const a of active) { try { a.pause(); a.currentTime = 0; } catch(e){} }
       active.clear();
       playing.splice(0, playing.length);
       renderNowPlaying();
       status.textContent = "⏹️ Stopped all.";
-      sequencing = false; // cancel any sequencer
+      sequencing = false;
     });
 
-    // Sequencer helpers (await end or timeout)
-    function playOnce(letter){
-      return new Promise((resolve) => {
-        const a = new Audio(DRIVE[letter]);
-        a.preload = 'none';
+    // Sequencer helpers
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+    async function playOnce(letter){
+      return new Promise(async (resolve) => {
+        const { audio: a, retry } = makeAudio(letter);
         active.add(a);
-
         const item = { letter, started: new Date(), audio: a };
         playing.unshift(item); if (playing.length > 16) playing.pop();
         renderNowPlaying();
 
-        const done = () => { removePlaying(item); active.delete(a); resolve(); };
-        const to = setTimeout(done, 2500); // fallback finish in 2.5s if no 'ended'
+        const finish = () => { removePlaying(item); active.delete(a); resolve(); };
+        const endTimer = setTimeout(finish, 3000); // safety timeout
+        a.onended = () => { clearTimeout(endTimer); finish(); };
 
-        a.onended = () => { clearTimeout(to); done(); };
-        a.play().catch(() => { clearTimeout(to); done(); });
+        try { await a.play(); }
+        catch {
+          try {
+            const swapped = await retry();
+            if (swapped !== a) { clearTimeout(endTimer); swapped.onended = finish; }
+          } catch { clearTimeout(endTimer); finish(); }
+        }
       });
     }
 
     // Play A → Z sequentially
     playAZBtn.addEventListener('click', async () => {
-      if (sequencing) return; // avoid double start
+      if (sequencing) return;
       sequencing = true;
       status.textContent = "🔁 Sequencing A → Z…";
       for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
         if (!sequencing) break;
         await playOnce(L);
-        await delay(120); // tiny gap between letters
+        await delay(120);
       }
       if (sequencing) status.textContent = "✅ Done A → Z";
       sequencing = false;
     });
 
-    // Play typed word sequentially (letters only; spaces = short pause)
-    playWordBtn.addEventListener('click', async () => {
+    // Play typed word sequentially
+    const playWordBtnHandler = async () => {
       const raw = (wordInput.value || "").toUpperCase();
       if (!raw.trim()) { status.innerHTML = `<span class="warn">Type a word first.</span>`; return; }
       if (sequencing) return;
       sequencing = true;
 
-      const letters = [];
+      const parts = [];
       for (const ch of raw) {
-        if (/[A-Z]/.test(ch)) letters.push({ type: "letter", value: ch });
-        else if (/\s/.test(ch)) letters.push({ type: "space" });
+        if (/[A-Z]/.test(ch)) parts.push({ type:"letter", value: ch });
+        else if (/\s/.test(ch)) parts.push({ type:"space" });
       }
 
       status.textContent = `✍️ Playing word: ${raw}`;
-      for (const part of letters) {
+      for (const p of parts) {
         if (!sequencing) break;
-        if (part.type === "space") { await delay(160); continue; }
-        await playOnce(part.value);
+        if (p.type === "space") { await delay(160); continue; }
+        await playOnce(p.value);
         await delay(120);
       }
       if (sequencing) status.textContent = "✅ Done";
       sequencing = false;
-    });
-
-    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+    };
+    playWordBtn.addEventListener('click', playWordBtnHandler);
 
     // Optional keyboard: A–Z triggers overlap play
     window.addEventListener('keydown', (e) => {

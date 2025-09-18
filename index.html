@@ -1,222 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Phonics Game 🎵</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700&display=swap" rel="stylesheet">
-<style>
-  :root{ --bg1:#667eea; --bg2:#764ba2; --card:#fff; --ink:#111827; --shadow:0 12px 28px rgba(0,0,0,.18) }
-  *{ box-sizing:border-box }
-  body{
-    margin:0; min-height:100vh; padding:16px; text-align:center; color:#fff;
-    background:linear-gradient(135deg,var(--bg1),var(--bg2));
-    font-family:'Nunito',system-ui,Segoe UI,Roboto,Helvetica,Arial;
-  }
-  h1{ margin:0 0 6px; text-shadow:0 6px 16px rgba(0,0,0,.25) }
-  .sub{ margin:0 0 12px; opacity:.95; font-size:14px }
-  .panel{ background:var(--card); color:var(--ink); border-radius:20px; padding:16px; max-width:980px; margin:12px auto; box-shadow:var(--shadow) }
-
-  /* Smaller, extra-compact grid for small phones */
-  .grid{
-    display:grid;
-    gap:6px;
-    grid-template-columns:repeat(auto-fit, minmax(44px, 1fr));
-    max-width:460px;
-    margin:8px auto 12px;
-  }
-
-  .btn{
-    border:none; border-radius:10px; color:#fff; font-weight:900; cursor:pointer;
-    aspect-ratio:1/1; font-size:clamp(12px, 3.6vw, 16px);
-    box-shadow:var(--shadow);
-    transition:transform .08s ease, filter .2s ease;
-    background:linear-gradient(135deg,#ff6b6b,#ee5a24);
-  }
-  .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d) }
-  .btn:nth-child(5n+3){ background:linear-gradient(135deg,#a78bfa,#60a5fa) }
-  .btn:nth-child(5n+4){ background:linear-gradient(135deg,#f59e0b,#ef4444) }
-  .btn:nth-child(5n+5){ background:linear-gradient(135deg,#06b6d4,#10b981) }
-  .btn:active{ transform:translateY(1px) scale(.98); filter:brightness(.95) }
-
-  .controls{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:6px 0 4px }
-  .ctl{
-    background:#111827; color:#fff; border:none; border-radius:10px;
-    padding:8px 12px; font-weight:900; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.18);
-    font-size:14px;
-  }
-  .ctl[disabled]{ opacity:.5; cursor:not-allowed }
-  .status{ margin:8px auto; font-weight:900; font-size:14px }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phonics Game 🎵</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      justify-items: center;
+      margin: 20px auto;
+      max-width: 400px;
+    }
+    button.letter {
+      width: 55px;
+      height: 55px;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff6a00, #ee0979);
+      transition: transform 0.1s;
+    }
+    button.letter:active {
+      transform: scale(0.9);
+    }
+    .controls {
+      margin: 15px 0;
+    }
+    button.control {
+      background: #111;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    button.control:hover {
+      background: #333;
+    }
+    .now-playing {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: white;
+      color: black;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
 </head>
 <body>
   <h1>Phonics Game 🎵</h1>
-  <p class="sub">Tap letters to overlap • A→Z starts next letter at 70% of the previous letter’s duration</p>
 
-  <div class="panel">
-    <div id="grid" class="grid"></div>
+  <div class="grid" id="grid"></div>
 
-    <div class="controls">
-      <button id="stopAll" class="ctl">⏹ Stop All</button>
-      <button id="playAZ" class="ctl">🔁 Play A → Z</button>
-    </div>
-
-    <div id="status" class="status">Now Playing: (none)</div>
+  <div class="controls">
+    <button class="control" onclick="stopAll()">⏹ Stop All</button>
+    <button class="control" onclick="playAtoZ()">🔊 Play A → Z</button>
   </div>
 
-<script>
-  // Google Drive fallback (if local A.mp3…Z.mp3 is missing)
-  const gdl = id => `https://drive.googleusercontent.com/uc?id=${id}&export=download`;
-  const DRIVE = {
-    A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae", B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
-    C:"15R8QN67z2I2fQajmObMkBWkobcpczK2M", D:"1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
-    E:"12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr", F:"1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
-    G:"1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv", H:"1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
-    I:"1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D", J:"194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
-    K:"12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA", L:"1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
-    M:"1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7", N:"1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
-    O:"11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX", P:"1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
-    Q:"1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb", R:"1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
-    S:"1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T", T:"1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
-    U:"13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i", V:"1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
-    W:"1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y", X:"1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
-    Y:"1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd", Z:"1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
-  };
+  <div class="now-playing">
+    <strong>Now Playing:</strong> <span id="nowPlaying">(none)</span>
+  </div>
 
-  const grid   = document.getElementById('grid');
-  const stopBtn= document.getElementById('stopAll');
-  const playAZ = document.getElementById('playAZ');
-  const status = document.getElementById('status');
+  <script>
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const grid = document.getElementById("grid");
+    const nowPlaying = document.getElementById("nowPlaying");
+    let activeAudios = [];
 
-  // Track active (for Now Playing + Stop All)
-  const active = new Map(); // Map<HTMLAudioElement, letter>
-  let sequenceAbort = false; // lets Stop All abort the A→Z sequence
+    // Try local repo MP3 first, fallback to Google Drive
+    const driveLinks = {
+      "A": "https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
+      "B": "https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
+      "C": "https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
+      "D": "https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
+      "E": "https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
+      "F": "https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
+      "G": "https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
+      "H": "https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
+      "I": "https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
+      "J": "https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
+      "K": "https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
+      "L": "https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
+      "M": "https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
+      "N": "https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
+      "O": "https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
+      "P": "https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
+      "Q": "https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
+      "R": "https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
+      "S": "https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
+      "T": "https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
+      "U": "https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
+      "V": "https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
+      "W": "https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
+      "X": "https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
+      "Y": "https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
+      "Z": "https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ"
+    };
 
-  // Build letter buttons
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
-    const b = document.createElement('button');
-    b.className = 'btn'; b.textContent = L;
-    b.addEventListener('click', () => playOverlap(L)); // taps can overlap
-    grid.appendChild(b);
-  });
-
-  const localUrl = L => `${L}.mp3?ts=${Date.now()}`;
-  const driveUrl = L => `${gdl(DRIVE[L])}&v=${Date.now()}`;
-
-  // Tap behavior: play immediately (overlap allowed)
-  async function playOverlap(L){
-    let a = new Audio(localUrl(L));
-    try { await a.play(); attach(L, a); }
-    catch {
-      a = new Audio(driveUrl(L));
-      try { await a.play(); attach(L, a); } catch {}
+    function getAudioSrc(letter) {
+      return `${letter}.mp3`; // repo local file
     }
-  }
 
-  // --- A→Z button: start next at 70% of previous duration ---
-  playAZ.addEventListener('click', async () => {
-    playAZ.disabled = true;
-    sequenceAbort = false;
-    for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      if (sequenceAbort) break;
-      await playNextAtPercent(L, 0.70); // 70% overlap timing
-      if (sequenceAbort) break;
+    function playLetter(letter) {
+      let audio = new Audio(getAudioSrc(letter));
+      audio.onerror = () => {
+        // fallback to Google Drive if local not found
+        audio = new Audio(driveLinks[letter]);
+        audio.play().catch(err => console.log("Error:", err));
+      };
+      audio.play().catch(err => console.log("Error:", err));
+
+      activeAudios.push(audio);
+      updateNowPlaying(letter);
+
+      audio.onended = () => {
+        activeAudios = activeAudios.filter(a => a !== audio);
+        if (activeAudios.length === 0) updateNowPlaying(null);
+      };
     }
-    playAZ.disabled = false;
-  });
 
-  // Returns when it's time to start the NEXT letter (after N% duration)
-  function playNextAtPercent(L, pct){
-    return new Promise(async (resolve) => {
-      // Try local first, then Drive
-      let a = new Audio(localUrl(L));
-      const onEnded = () => { active.delete(a); updateStatus(); };
-      a.addEventListener('ended', onEnded, {once:true});
-
-      const startWith = async (audio) => {
-        try {
-          await audio.play();
-          attach(L, audio, /*skipEndHook=*/true); // we added our own 'ended'
-          updateStatus();
-
-          const waitMs = await percentDurationMs(audio, pct);
-          setTimeout(() => resolve(), waitMs);
-        } catch {
-          resolve(); // couldn't play; move on
-        }
-      };
-
-      try {
-        await startWith(a);
-      } catch {
-        a.removeEventListener('ended', onEnded);
-        a = new Audio(driveUrl(L));
-        a.addEventListener('ended', () => { active.delete(a); updateStatus(); }, {once:true});
-        await startWith(a);
-      }
-    });
-  }
-
-  // Compute N% of the true duration (ms); wait for metadata if needed
-  function percentDurationMs(audio, pct){
-    return new Promise((res) => {
-      const fallback = 800; // used if duration is unknown quickly
-      const finish = () => {
-        const d = audio.duration;
-        if (Number.isFinite(d) && d > 0) {
-          res(Math.max(150, d * 1000 * pct)); // at least 150ms
-        } else {
-          res(fallback * pct); // ~70% of 800ms by default
-        }
-      };
-
-      if (Number.isFinite(audio.duration) && audio.duration > 0) {
-        finish();
+    function updateNowPlaying(letter) {
+      if (!letter) {
+        nowPlaying.textContent = activeAudios.length ? "(multiple)" : "(none)";
       } else {
-        const onMeta = () => { cleanup(); finish(); };
-        const onTimeout = () => { cleanup(); res(fallback * pct); };
-        const cleanup = () => {
-          audio.removeEventListener('loadedmetadata', onMeta);
-          audio.removeEventListener('durationchange', onMeta);
-        };
-        audio.addEventListener('loadedmetadata', onMeta, {once:true});
-        audio.addEventListener('durationchange', onMeta, {once:true});
-        setTimeout(onTimeout, 1200);
+        const playing = activeAudios.length > 1
+          ? activeAudios.length + " sounds"
+          : letter;
+        nowPlaying.textContent = playing;
       }
+    }
+
+    function stopAll() {
+      activeAudios.forEach(a => a.pause());
+      activeAudios = [];
+      updateNowPlaying(null);
+    }
+
+    async function playAtoZ() {
+      stopAll();
+      for (let i = 0; i < letters.length; i++) {
+        await new Promise(resolve => {
+          let audio = new Audio(getAudioSrc(letters[i]));
+          audio.onerror = () => {
+            audio = new Audio(driveLinks[letters[i]]);
+          };
+          audio.onloadedmetadata = () => {
+            audio.play();
+            setTimeout(resolve, audio.duration * 700); // 70%
+          };
+          audio.play().catch(err => resolve());
+        });
+      }
+    }
+
+    // create alphabet buttons
+    letters.forEach(l => {
+      const btn = document.createElement("button");
+      btn.className = "letter";
+      btn.textContent = l;
+      btn.onclick = () => playLetter(l);
+      grid.appendChild(btn);
     });
-  }
-
-  // Attach an audio to tracking; optionally skip default 'ended' hook
-  function attach(L, audio, skipEndHook=false){
-    active.set(audio, L);
-    if (!skipEndHook) {
-      audio.addEventListener('ended', () => { active.delete(audio); updateStatus(); }, {once:true});
-    }
-    audio.addEventListener('pause', () => {
-      if (audio.currentTime === 0) { active.delete(audio); updateStatus(); }
-    });
-    updateStatus();
-  }
-
-  // Stop All cancels everything and also aborts A→Z sequence
-  stopBtn.addEventListener('click', () => {
-    sequenceAbort = true;
-    for (const audio of Array.from(active.keys())) {
-      try { audio.pause(); audio.currentTime = 0; } catch(e){}
-      try { audio.removeAttribute('src'); audio.load(); } catch(e){}
-      active.delete(audio);
-    }
-    updateStatus();
-  });
-
-  function updateStatus(){
-    if (active.size === 0) {
-      status.textContent = 'Now Playing: (none)';
-    } else {
-      const letters = Array.from(active.values());
-      status.textContent = 'Now Playing: ' + letters.join(', ');
-    }
-  }
-</script>
+  </script>
 </body>
 </html>

@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Alphabet Phonics Game</title>
   <style>
-    body { font-family: Arial, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; margin:0; padding:20px; text-align:center; color:#fff;}
-    h1 { margin: 0 0 6px; }
-    p { margin: 0 0 12px; opacity:.9 }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(64px,1fr)); gap:12px; max-width:640px; margin:18px auto; }
-    .btn { background:#ff6b6b; color:#fff; border:none; border-radius:14px; padding:18px 0; font-size:1.6rem; font-weight:700; cursor:pointer; transition:transform .1s; }
-    .btn:active { transform:scale(.98); }
-    .display { background:#fff; color:#111; max-width:520px; margin:18px auto 0; padding:14px 16px; border-radius:16px; box-shadow:0 6px 16px rgba(0,0,0,.18); }
-    .ok { color:#16a34a; font-weight:700; }
-    .warn { color:#b91c1c; font-weight:700; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;margin:0;padding:20px;text-align:center;color:#fff}
+    h1{margin:0 0 6px} p{margin:0 0 12px;opacity:.9}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:12px;max-width:640px;margin:18px auto}
+    .btn{background:#ff6b6b;color:#fff;border:none;border-radius:14px;padding:18px 0;font-size:1.6rem;font-weight:700;cursor:pointer;transition:transform .1s}
+    .btn:active{transform:scale(.98)}
+    .display{background:#fff;color:#111;max-width:520px;margin:18px auto 0;padding:14px 16px;border-radius:16px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+    .ok{color:#16a34a;font-weight:700}.warn{color:#b91c1c;font-weight:700}
   </style>
 </head>
 <body>
@@ -24,75 +22,67 @@
   <div id="out" class="display">🌟 Click a letter to start! 🌟</div>
 
   <script>
-    // Your Google Drive IDs for A–Z (from your earlier message)
-    const driveIDs = {
-      A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
-      B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
-      C:"15R8QN67z2I2fQajmObMkBWkobcpczK2M",
-      D:"1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
-      E:"12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
-      F:"1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
-      G:"1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
-      H:"1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
-      I:"1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
-      J:"194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
-      K:"12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
-      L:"1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
-      M:"1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
-      N:"1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
-      O:"11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
-      P:"1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
-      Q:"1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
-      R:"1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
-      S:"1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
-      T:"1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
-      U:"13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
-      V:"1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
-      W:"1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
-      X:"1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
-      Y:"1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
-      Z:"1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ",
+    // Direct Google Drive URLs (built from your links)
+    const DRIVE = {
+      A:"https://drive.google.com/uc?export=download&id=1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae",
+      B:"https://drive.google.com/uc?export=download&id=10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
+      C:"https://drive.google.com/uc?export=download&id=15R8QN67z2I2fQajmObMkBWkobcpczK2M",
+      D:"https://drive.google.com/uc?export=download&id=1jUcdWAYesbmdOkfs-0sSsAJ9WEjBM3NI",
+      E:"https://drive.google.com/uc?export=download&id=12YSf9qsSJru0tAtsGBeYiYt2gQ0Dztgr",
+      F:"https://drive.google.com/uc?export=download&id=1oqmBDnCIeXiZvfJYnSgg3kZP9Iw6qyFM",
+      G:"https://drive.google.com/uc?export=download&id=1hnhna5SXk7qCMP4Z_eV1I5b5fLLW4TXv",
+      H:"https://drive.google.com/uc?export=download&id=1OY8rgUAilYGOD0yjZ9mD16TzoelEsPrC",
+      I:"https://drive.google.com/uc?export=download&id=1vXiQpBw4Q-kPp0uvtydnC7KS6fQvew4D",
+      J:"https://drive.google.com/uc?export=download&id=194ZXxUJISwq5vkB94SZ_gJ_annsgVxy3",
+      K:"https://drive.google.com/uc?export=download&id=12z_yfJUmhkd5LN1poMN2dNgXO1yyCSEA",
+      L:"https://drive.google.com/uc?export=download&id=1HHPYFY4p-Z__6SZKEKgSOCBug4gsIGC1",
+      M:"https://drive.google.com/uc?export=download&id=1zuOsAkuCo4bRV9LGl-ElNNjA2y5bTJa7",
+      N:"https://drive.google.com/uc?export=download&id=1PiG51Z1neVqxVGvWxotHwhUd3-Ljb5Jy",
+      O:"https://drive.google.com/uc?export=download&id=11ymp4cEflp3FIzJN3XYdalDdv8lqJLkX",
+      P:"https://drive.google.com/uc?export=download&id=1YiqPEjT5C4gY8M7B6w3ykf8r4GdQQeeH",
+      Q:"https://drive.google.com/uc?export=download&id=1ZOGnULcvvf8aNTWeZdjCB93xmcFnZVPb",
+      R:"https://drive.google.com/uc?export=download&id=1QleiMuwxKQnlF4vfciQFxpLwEq7oV4zO",
+      S:"https://drive.google.com/uc?export=download&id=1XBvC4nse_amvfLiLBReiEpDHcAfJ7Z1T",
+      T:"https://drive.google.com/uc?export=download&id=1lPK7U4XqhbCY2eV9eNnHKmWyWMGljm3k",
+      U:"https://drive.google.com/uc?export=download&id=13_Z4QA5fP6KzU0myieJD1ZG2IMU_aU6i",
+      V:"https://drive.google.com/uc?export=download&id=1EKd7dITWTuEwIlVOQ_dq1Fy3BIfVJ6zA",
+      W:"https://drive.google.com/uc?export=download&id=1Bh8Wx6tXfbwA1_KW4tHaMKd3Vmc2MQ3y",
+      X:"https://drive.google.com/uc?export=download&id=1NqCJc7LGjdnGMDPnkmHY3qZx-PphRuxw",
+      Y:"https://drive.google.com/uc?export=download&id=1GKyvE5x-aR_mlwXLBwDGEpGowwjR_Nnd",
+      Z:"https://drive.google.com/uc?export=download&id=1K4J-Lu0zWHjk6ciMVxw_JuPiOrIuXXmZ",
     };
 
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
     const grid = document.getElementById("grid");
     const out  = document.getElementById("out");
+    const audioMap = new Map();
     let current = null;
 
-    // Build buttons
+    // Build buttons and attach audio
     for (const L of letters) {
       const b = document.createElement("button");
       b.className = "btn";
       b.textContent = L;
-      b.addEventListener("click", () => play(L, b));
-      grid.appendChild(b);
-    }
 
-    function play(letter, btn) {
-      // stop previous
-      if (current) { try { current.pause(); current.currentTime = 0; } catch(e){} }
+      const a = new Audio();
+      a.src = DRIVE[L];
+      a.preload = "none"; // load only on click (helps in iframes/Canva)
 
-      // Try LOCAL first (same-folder A.mp3, B.mp3…)
-      const a = new Audio(`${letter}.mp3`);
-      current = a;
-
-      const ok = () => { out.innerHTML = `<span class="ok">🔊 Playing ${letter}.mp3</span>`; };
-      const fail = () => {
-        // fallback to Google Drive direct link
-        const id = driveIDs[letter];
-        if (!id) {
-          out.innerHTML = `<span class="warn">❗ ${letter}.mp3 not found</span>`;
-          return;
+      b.addEventListener("click", async () => {
+        // stop previous
+        if (current && current !== a) { try { current.pause(); current.currentTime = 0; } catch(e){} }
+        current = a;
+        try { a.currentTime = 0; } catch(e){}
+        try {
+          await a.play();            // requires user gesture; click is ok
+          out.innerHTML = `<span class="ok">🔊 Playing ${L}</span>`;
+        } catch (e) {
+          out.innerHTML = `<span class="warn">❗ Could not play ${L}. Check Drive sharing: “Anyone with the link”.</span>`;
         }
-        const gd = new Audio(`https://drive.google.com/uc?export=download&id=${id}`);
-        current = gd;
-        gd.play()
-          .then(() => { out.innerHTML = `<span class="ok">🔊 Playing ${letter} (Google Drive)</span>`; })
-          .catch(() => { out.innerHTML = `<span class="warn">❗ Could not play ${letter} from Drive. Check sharing: "Anyone with the link".</span>`; });
-      };
+      });
 
-      // Try to play the local file
-      a.play().then(ok).catch(fail);
+      audioMap.set(L, a);
+      grid.appendChild(b);
     }
   </script>
 </body>

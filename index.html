@@ -10,15 +10,17 @@
   *{ box-sizing:border-box }
   body{
     margin:0; min-height:100vh; padding:20px; text-align:center; color:#fff;
-    background:linear-gradient(135deg,var(--bg1),var(--bg2)); font-family:'Nunito',system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    font-family:'Nunito',system-ui,Segoe UI,Roboto,Helvetica,Arial;
   }
   h1{ margin:0 0 8px; text-shadow:0 6px 16px rgba(0,0,0,.25) }
   .sub{ margin:0 0 14px; opacity:.95 }
   .panel{ background:var(--card); color:var(--ink); border-radius:22px; padding:20px; max-width:980px; margin:14px auto; box-shadow:var(--shadow) }
   .grid{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); max-width:720px; margin:10px auto 16px }
   .btn{
-    border:none; border-radius:16px; color:#fff; font-weight:900; cursor:pointer; aspect-ratio:1/1; font-size:22px;
-    box-shadow:var(--shadow); transition:transform .08s ease, filter .2s ease;
+    border:none; border-radius:16px; color:#fff; font-weight:900; cursor:pointer;
+    aspect-ratio:1/1; font-size:22px; box-shadow:var(--shadow);
+    transition:transform .08s ease, filter .2s ease;
     background:linear-gradient(135deg,#ff6b6b,#ee5a24);
   }
   .btn:nth-child(5n+2){ background:linear-gradient(135deg,#4ecdc4,#44a08d) }
@@ -28,19 +30,12 @@
   .btn:active{ transform:translateY(1px) scale(.98); filter:brightness(.95) }
   .controls{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:8px 0 6px }
   .ctl{ background:#111827; color:#fff; border:none; border-radius:12px; padding:10px 14px; font-weight:900; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.18) }
-  .status{ margin:10px auto 2px; font-weight:900 }
-  .np-wrap{ max-width:760px; margin:10px auto 0; text-align:left }
-  .np-title{ margin:0 0 8px; font-weight:900 }
-  .np-list{ list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:8px }
-  .chip{ background:#eef2ff; color:#3730a3; border-radius:999px; padding:6px 10px; font-weight:900; display:flex; gap:6px; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,.08) }
-  .chip small{ color:#6b7280; font-weight:800 }
-  .foot{ opacity:.85; font-size:12px; margin-top:8px; text-align:center }
-  .dbg{ font-size:12px; color:#6b7280; margin-top:6px }
+  .status{ margin:10px auto; font-weight:900 }
 </style>
 </head>
 <body>
   <h1>Phonics Game 🎵</h1>
-  <p class="sub">Tap letters to play overlapping sounds • Use A→Z to hear them in order</p>
+  <p class="sub">Tap letters to play overlapping sounds</p>
 
   <div class="panel">
     <div id="grid" class="grid"></div>
@@ -50,18 +45,11 @@
       <button id="playAZ" class="ctl">🔁 Play A → Z</button>
     </div>
 
-    <div id="status" class="status">Ready ✅</div>
-    <div id="dbg" class="dbg"></div>
-
-    <div class="np-wrap">
-      <p class="np-title">Now Playing:</p>
-      <ul id="np" class="np-list"></ul>
-      <div class="foot">Local first (A.mp3…Z.mp3), fallback to Google Drive if missing.</div>
-    </div>
+    <div id="status" class="status">Now Playing: (none)</div>
   </div>
 
 <script>
-  // --- Google Drive (fallback) ---
+  // --- Google Drive fallback ---
   const gdl = id => `https://drive.googleusercontent.com/uc?id=${id}&export=download`;
   const DRIVE = {
     A:"1Qe1aCr14oUrDU-6EMcxzeAyMU8NMXfae", B:"10IJYuYVMFQJGHycrLFCX6zG4yz41qmWJ",
@@ -83,11 +71,8 @@
   const stopBtn = document.getElementById('stopAll');
   const playAZ = document.getElementById('playAZ');
   const status = document.getElementById('status');
-  const np = document.getElementById('np');
-  const dbg = document.getElementById('dbg');
 
   const active = new Set();
-  const chips = new Map();
 
   // Build buttons
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(L => {
@@ -100,79 +85,48 @@
   function localUrl(letter){ return `${letter}.mp3?ts=${Date.now()}`; }
   function driveUrl(letter){ return gdl(DRIVE[letter]) + `&v=${Date.now()}`; }
 
-  // Try local first; if play() fails quickly, fall back to Drive.
   async function playLetter(letter){
     let a = new Audio(localUrl(letter));
-    a.preload = 'auto';
-    attachChip(letter, a, a.src);
-
     try {
       await a.play();
-      status.textContent = `🔊 Playing ${letter} (local)`;
-      dbg.textContent = a.src;
+      addActive(letter, a);
     } catch {
-      // fallback to Drive
-      cleanup(a);
       a = new Audio(driveUrl(letter));
-      attachChip(letter, a, a.src);
-      try{
+      try {
         await a.play();
-        status.textContent = `🔊 Playing ${letter} (Drive)`;
-        dbg.textContent = a.src;
-      }catch{
-        cleanup(a);
-        status.textContent = `❗ Could not play ${letter}. Check that ${letter}.mp3 exists OR Drive sharing is public.`;
-        dbg.textContent = `Tried local and Drive`;
-      }
+        addActive(letter, a);
+      } catch {}
     }
   }
 
-  function attachChip(letter, audio, triedUrl){
-    active.add(audio);
-    const li = document.createElement('li');
-    li.className = 'chip';
-    li.innerHTML = `<strong>${letter}</strong> <small>${new Date().toLocaleTimeString()}</small>`;
-    li.title = triedUrl || '';
-    np.prepend(li);
-    chips.set(audio, li);
-    audio.onended = () => cleanup(audio);
-    audio.onpause = () => { if (audio.currentTime === 0) cleanup(audio); };
+  function addActive(letter, audio){
+    active.add({letter,audio});
+    audio.onended = () => { active.delete({letter,audio}); updateStatus(); };
+    updateStatus();
   }
 
-  function cleanup(audio){
-    active.delete(audio);
-    const c = chips.get(audio);
-    if (c) { c.remove(); chips.delete(audio); }
+  function updateStatus(){
+    if (active.size === 0) {
+      status.textContent = "Now Playing: (none)";
+    } else {
+      const letters = [...active].map(x=>x.letter);
+      status.textContent = "Now Playing: " + letters.join(", ");
+    }
   }
 
-  // Stop All
   stopBtn.addEventListener('click', () => {
-    for (const a of Array.from(active)) {
-      try { a.pause(); a.currentTime = 0; } catch(e){}
-      try { a.removeAttribute('src'); a.load(); } catch(e){}
-      cleanup(a);
+    for (const {audio} of active) {
+      try { audio.pause(); audio.currentTime=0; } catch(e){}
     }
-    status.textContent = "⏹ All stopped";
-    dbg.textContent = "";
+    active.clear();
+    updateStatus();
   });
 
-  // A→Z demo (sequential)
   playAZ.addEventListener('click', async () => {
-    status.textContent = "🔁 Playing A → Z…";
     for (const L of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
-      // local try
-      let a = new Audio(localUrl(L));
-      attachChip(L, a, a.src);
-      try { await a.play(); }
-      catch {
-        cleanup(a);
-        a = new Audio(driveUrl(L));
-        attachChip(L, a, a.src);
-        try { await a.play(); } catch { cleanup(a); }
-      }
-      await new Promise(r => setTimeout(r, 140));
+      playLetter(L);
+      await new Promise(r=>setTimeout(r,200));
     }
-    status.textContent = "✅ Done A → Z";
   });
 </script>
 </body>
